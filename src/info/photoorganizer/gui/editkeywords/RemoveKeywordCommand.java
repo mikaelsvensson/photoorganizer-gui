@@ -55,7 +55,7 @@ public class RemoveKeywordCommand extends POCommand
     {
         if (null != _parentBeforeRemoval)
         {
-            _parentBeforeRemoval.addChild(_keyword);
+            _parentBeforeRemoval.addChild(_keyword, true);
         }
     }
     

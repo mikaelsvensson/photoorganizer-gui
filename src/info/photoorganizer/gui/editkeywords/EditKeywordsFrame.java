@@ -216,7 +216,7 @@ public class EditKeywordsFrame extends PODialog
         {
             Database database = getDatabase();
             
-            _keywordsTree = new POTree();
+            _keywordsTree = new POTree(new POTreeModel(database.getRootKeyword()));
             _keywordsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
             _keywordsTree.setRootVisible(false);
             _keywordsTree.setEditable(true);
@@ -228,9 +228,6 @@ public class EditKeywordsFrame extends PODialog
                     onKeywordsTree_TreeSelection_valueChanged(e);
                 }
             });
-            
-            POTreeModel treeModel = new POTreeModel(database.getRootKeyword());
-            _keywordsTree.setModel(treeModel);
             
         }
         return _keywordsTree;

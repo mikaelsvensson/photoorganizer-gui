@@ -28,7 +28,7 @@ public class AddKeywordCommand extends POCommand
     {
         try
         {
-            _newKeyword = _parent.createChild(_newName);
+            _newKeyword = _parent.addChild(_newName);
             _newKeyword.store();
         }
         catch (DatabaseStorageException e)
@@ -43,7 +43,7 @@ public class AddKeywordCommand extends POCommand
     {
         try
         {
-            _parent.addChild(_newKeyword);
+            _parent.addChild(_newKeyword, true);
             _parent.store();
         }
         catch (DatabaseStorageException e)
@@ -58,7 +58,7 @@ public class AddKeywordCommand extends POCommand
     {
         try
         {
-            _parent.removeChild(_newKeyword);
+            _parent.removeChild(_newKeyword, true);
             _parent.store();
         }
         catch (DatabaseStorageException e)

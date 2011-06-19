@@ -92,7 +92,7 @@ public class POTreeModel implements TreeModel, KeywordTagDefinitionEventListener
     }
     
     @Override
-    public Object getRoot()
+    public KeywordTagDefinition getRoot()
     {
         return root;
     }

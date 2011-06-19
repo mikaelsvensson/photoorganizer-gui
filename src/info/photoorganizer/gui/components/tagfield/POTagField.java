@@ -633,5 +633,10 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
         //moveCaretPosition(positionInSentence + 1 + quotationOffset);
         moveCaretPosition(startOfReplacement + caretPositionInWord);
     }
+
+    public boolean isFocusLost(FocusEvent e)
+    {
+        return e.getOppositeComponent() != this && e.getOppositeComponent() != _suggestionlist && e.getOppositeComponent() != _suggestionsFrame;
+    }
     
 }

@@ -146,7 +146,7 @@ public class EditKeywordFrame extends PODialog
             KeywordTagDefinition k = rootKeyword.getChildByName(word.getWord(), true);
             if (null == k)
             {
-                k = rootKeyword.createChild(word.getWord());
+                k = rootKeyword.addChild(word.getWord());
             }
             try
             {
