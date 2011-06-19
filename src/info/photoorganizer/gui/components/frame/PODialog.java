@@ -5,6 +5,7 @@ import info.photoorganizer.database.DatabaseManager;
 import info.photoorganizer.gui.components.PORadioButton;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.tagfield.POTagFieldSuggestionProvider;
+import info.photoorganizer.gui.components.view.ViewLayout;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
 import info.photoorganizer.gui.shared.KeyModifiers;
@@ -21,6 +22,7 @@ import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.config.ConfigurationProperty;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
@@ -81,6 +83,12 @@ public abstract class PODialog extends JDialog
     public static JPanel createBorderLayoutPanel()
     {
         JPanel panel = new JPanel(new BorderLayout());
+        return panel;
+    }
+    
+    public static JPanel createViewLayoutPanel()
+    {
+        JPanel panel = new JPanel(new ViewLayout());
         return panel;
     }
     
@@ -163,7 +171,8 @@ public abstract class PODialog extends JDialog
     
     protected static JLabel createLabel(String text)
     {
-        return new JLabel(text);
+        JLabel l = new JLabel(text);
+        return l;
     }
     
     protected static <T extends Enum<?>> ButtonGroup createButtonGroup(Class<T> cls, POActionListener actionListener)
@@ -246,30 +255,8 @@ public abstract class PODialog extends JDialog
     
     protected static void initDefaultLookAndFeel()
     {
-        try
-        {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-        }
-        catch (ClassNotFoundException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (InstantiationException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (IllegalAccessException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (UnsupportedLookAndFeelException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        PODialogTheme.init();
+        PODialogTheme.applyTheme(PODialogTheme.LIGHT_GREY);
     }
 
     protected PODialog(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, JPanel rootPanel)
