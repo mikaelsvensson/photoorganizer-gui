@@ -9,7 +9,9 @@ public enum Keys
     ESCAPE(KeyEvent.VK_ESCAPE), 
     UP(KeyEvent.VK_UP), 
     DOWN(KeyEvent.VK_DOWN), 
-    ENTER(KeyEvent.VK_ENTER);
+    ENTER(KeyEvent.VK_ENTER),
+    RIGHT(KeyEvent.VK_RIGHT),
+    LEFT(KeyEvent.VK_LEFT);
     
     private Keys(int keyCode)
     {

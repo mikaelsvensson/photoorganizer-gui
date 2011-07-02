@@ -2,7 +2,10 @@ package info.photoorganizer.gui.components.thumblist;
 
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
+import info.photoorganizer.gui.shared.KeyModifiers;
+import info.photoorganizer.gui.shared.Keys;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -13,6 +16,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.RenderingHints.Key;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -20,10 +25,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +40,19 @@ import java.util.TreeSet;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 
 import com.sun.jmx.remote.util.OrderClassLoaders;
 
 public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>
 {
+    public final static String ACTIONNAME_FOCUS_NEXT = "focusNext";
+    public final static String ACTIONNAME_FOCUS_PREVIOUS = "focusPrevious";
+    public final static String ACTIONNAME_FOCUS_NEXT_GROUP = "focusNextGroup";
+    public final static String ACTIONNAME_FOCUS_PREVIOUS_GROUP = "focusPreviousGroup";
+    public final static String ACTIONNAME_FOCUS_UP = "focusUp";
+    public final static String ACTIONNAME_FOCUS_DOWN= "focusDown";
 
     private static class DemoListItem implements ListItem
     {
@@ -141,6 +155,16 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
      */
     private static final long serialVersionUID = 1L;
     
+    public static List<ListItem> getFolderList(String path)
+    {
+        List<ListItem> items = new ArrayList<ListItem>();
+        for (File f : (new File(path)).listFiles())
+        {
+            items.add(new DemoListItem(f));
+        }
+        return items;
+    }
+    
     public static void main(String[] args)
     {
         POThumbList thumbList = new POThumbList();
@@ -160,6 +184,9 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     private ImageGrouper _grouper = new FileNameGrouper();
     
     private Map<ListItemGroupGuiItem, List<ListItemGuiItem>> _guiItemMap = new HashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
+    private List<GuiItem> _guiItemList = new ArrayList<GuiItem>();
+    
+    private GuiItem _focusedGuiItem = null;
     
     private ArrayList<ListItem> _items = null;
     
@@ -177,6 +204,38 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         setPreferredSize(new Dimension(200, 50));
         setAutoscrolls(true);
+        setFocusable(true);
+        
+        getActionMap().put(ACTIONNAME_FOCUS_NEXT, new MoveFocusAction(this, GuiItemRelationship.NEXT));
+        getActionMap().put(ACTIONNAME_FOCUS_PREVIOUS, new MoveFocusAction(this, GuiItemRelationship.PREVIOUS));
+        getActionMap().put(ACTIONNAME_FOCUS_NEXT_GROUP, new MoveFocusAction(this, GuiItemRelationship.NEXT_GROUP));
+        getActionMap().put(ACTIONNAME_FOCUS_PREVIOUS_GROUP, new MoveFocusAction(this, GuiItemRelationship.PREVIOUS_GROUP));
+        getActionMap().put(ACTIONNAME_FOCUS_UP, new MoveFocusAction(this, GuiItemRelationship.UP));
+        getActionMap().put(ACTIONNAME_FOCUS_DOWN, new MoveFocusAction(this, GuiItemRelationship.DOWN));
+        
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.DOWN.getKeyCode(), KeyModifiers.NONE.getValue()), ACTIONNAME_FOCUS_DOWN);
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.UP.getKeyCode(), KeyModifiers.NONE.getValue()), ACTIONNAME_FOCUS_UP);
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.LEFT.getKeyCode(), KeyModifiers.NONE.getValue()), ACTIONNAME_FOCUS_PREVIOUS);
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.RIGHT.getKeyCode(), KeyModifiers.NONE.getValue()), ACTIONNAME_FOCUS_NEXT);
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.LEFT.getKeyCode(), KeyModifiers.CTRL.getValue()), ACTIONNAME_FOCUS_PREVIOUS_GROUP);
+        getInputMap().put(KeyStroke.getKeyStroke(Keys.RIGHT.getKeyCode(), KeyModifiers.CTRL.getValue()), ACTIONNAME_FOCUS_NEXT_GROUP);
+        
+        addFocusListener(new FocusListener()
+        {
+            
+            @Override
+            public void focusLost(FocusEvent e)
+            {
+                repaint();
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e)
+            {
+                repaint();
+            }
+        });
+        
         addMouseWheelListener(new MouseWheelListener()
         {
             
@@ -248,6 +307,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             @Override
             public void mouseClicked(MouseEvent e)
             {
+                requestFocusInWindow();
             }
             
             @Override
@@ -270,13 +330,11 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             {
                 Rectangle repaintArea = new Rectangle();
                 
-                Rectangle oldDragArea = _mouseSelectionArea;
-                
-                Rectangle mouseSelectionArea = _mouseSelectionArea;
-                List<ListItem> items = null;
-                if (null != mouseSelectionArea)
+                if (null != _mouseSelectionArea)
                 {
-                    for (ListItemGuiItem item : getGuiItemsInArea(mouseSelectionArea))
+                    repaintArea.add(_mouseSelectionArea);
+                    
+                    for (ListItemGuiItem item : getGuiItemsInArea(_mouseSelectionArea))
                     {
                         item.isSelected = !item.isSelected;
                         repaintArea.add(item.area);
@@ -284,10 +342,21 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 }
                 else
                 {
-                    ListItemGuiItem item = getGuiItemAtPoint(e.getPoint());
+                    GuiItem item = getGuiItemAtPoint(e.getPoint());
                     if (item != null)
                     {
-                        item.isSelected = !item.isSelected;
+                        if (item instanceof ListItemGuiItem)
+                        {
+                            ListItemGuiItem listItemGuiItem = (ListItemGuiItem)item;
+                            listItemGuiItem.isSelected = !listItemGuiItem.isSelected;
+                        }
+
+                        if (null != _focusedGuiItem)
+                        {
+                            repaintArea.add(_focusedGuiItem.area);
+                        }
+                        
+                        setFocusedGuiItem(item);
                         
                         repaintArea.add(item.area);
                     }
@@ -295,10 +364,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 
                 _mouseSelectionDragStart = null;
                 _mouseSelectionArea = null;
-                if (null != oldDragArea)
-                {
-                    repaintArea.add(oldDragArea);
-                }
                 
                 repaint(repaintArea);
                 
@@ -314,16 +379,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     }
     
-    public List<ListItem> getFolderList(String path)
-    {
-        List<ListItem> items = new ArrayList<ListItem>();
-        for (File f : (new File(path)).listFiles())
-        {
-            items.add(new DemoListItem(f));
-        }
-        return items;
-    }
-    
     ListItemGroupGuiItem getGroupGuiItem(ImageGroup group)
     {
         for (ListItemGroupGuiItem guiItem : _guiItemMap.keySet())
@@ -335,18 +390,25 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
         return null;
     }
-    ListItemGuiItem getGuiItemAtPoint(Point coord)
+    GuiItem getGuiItemAtPoint(Point coord)
     {
-        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        for (GuiItem guiItem : _guiItemList)
         {
-            for (ListItemGuiItem item : entry.getValue())
+            if (guiItem.isCovering(coord))
             {
-                if (item.isCovering(coord))
-                {
-                    return item;
-                }
+                return guiItem;
             }
         }
+//        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+//        {
+//            for (ListItemGuiItem item : entry.getValue())
+//            {
+//                if (item.isCovering(coord))
+//                {
+//                    return item;
+//                }
+//            }
+//        }
         return null;
     }
 
@@ -455,7 +517,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return _items.iterator();
     }
 
-    private void paint(Dimension componentSize, Dimension visibleSize, Graphics2D g)
+    private void paintComponent(Graphics2D g)
     {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Rectangle originalClip = g.getClipBounds();
@@ -464,9 +526,24 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         
         paintSelectionRectangle(g);
         
+        if (isFocusOwner())
+        {
+            paintFocusIndicator(g);
+        }
+        
         g.setClip(originalClip);
         
         revalidate();
+    }
+
+    private void paintFocusIndicator(Graphics2D g)
+    {
+        if (_focusedGuiItem != null)
+        {
+            BasicStroke stroke = new BasicStroke(0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0, new float[] {2,2}, 0);
+            Rectangle focusRect = new Rectangle(_focusedGuiItem.area.x, _focusedGuiItem.area.y, _focusedGuiItem.area.width - 1, _focusedGuiItem.area.height - 1);
+            g.draw(stroke.createStrokedShape(focusRect));
+        }
     }
 
     @Override
@@ -482,8 +559,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
         
         int w = getWidth();
-        int h = getHeight();
-        
         if (_width != w)
         {
             // Component has been resized. Recalculate whatever needs to be recalculated.
@@ -491,11 +566,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             _width = w;
         }
         
-        Rectangle clipBounds = g.getClipBounds();
-        
-        Graphics2D g2d = (Graphics2D) g.create();
-
-        paint(getSize(), getVisibleRect().getSize(), g2d);
+        paintComponent((Graphics2D) g.create());
     }
 
     private void paintGuiItems(Graphics2D g)
@@ -525,7 +596,8 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
 
     private void regroup(ImageGrouper grouper)
     {
-        Map<ListItemGroupGuiItem, List<ListItemGuiItem>> newGuiItemMap = new HashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
+        Map<ListItemGroupGuiItem, List<ListItemGuiItem>> newGuiItemMap = new LinkedHashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
+        List<GuiItem> newGuiItemList = new ArrayList<GuiItem>();
         
         for (ImageGroup grp : grouper.group(_items))
         {
@@ -538,6 +610,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             
             ArrayList<ListItemGuiItem> itemList = new ArrayList<ListItemGuiItem>();
             newGuiItemMap.put(groupGuiItem, itemList);
+            newGuiItemList.add(groupGuiItem);
             
             for (ListItem item : grp.getItems())
             {
@@ -547,11 +620,17 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                     imageGuiItem = new ListItemGuiItem(item, _painter, new Rectangle());
                 }
                 itemList.add(imageGuiItem);
+                newGuiItemList.add(imageGuiItem);
             }
         }
+        
+        
         _guiItemMap = newGuiItemMap;
         
         relayout();
+
+        Collections.sort(newGuiItemList, ITEM_SORTER);
+        _guiItemList = newGuiItemList;
         
         repaint();
     }
@@ -634,18 +713,91 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         repaint();
     }
     
+    public GuiItem getRelatedGuiItem(GuiItem base, GuiItemRelationship relationship)
+    {
+        int basePos = _guiItemList.indexOf(base);
+        if (basePos >= 0)
+        {
+            switch (relationship)
+            {
+            case DOWN:
+            {
+                for (int i = basePos + 1; i < _guiItemList.size(); i++)
+                {
+                    GuiItem guiItem = _guiItemList.get(i);
+                    if (guiItem.area.y > base.area.y && guiItem.area.x >= base.area.x)
+                    {
+                        return guiItem;
+                    }
+                }
+                break;
+            }
+            case UP:
+            {
+                for (int i = basePos - 1; i >= 0; i--)
+                {
+                    GuiItem guiItem = _guiItemList.get(i);
+                    if (guiItem.area.y < base.area.y && guiItem.area.x <= base.area.x)
+                    {
+                        return guiItem;
+                    }
+                }
+                break;
+            }
+            case LEFT:
+            case RIGHT:
+                break;
+            case NEXT:
+                if (basePos < _guiItemList.size() - 1)
+                {
+                    return _guiItemList.get(basePos + 1);
+                }
+                break;
+            case PREVIOUS:
+                if (basePos > 0)
+                {
+                    return _guiItemList.get(basePos - 1);
+                }
+                break;
+            case NEXT_GROUP:
+            case PREVIOUS_GROUP:
+            {
+                int step = relationship == GuiItemRelationship.NEXT_GROUP ? 1 : -1;
+                for (int i = basePos + step; i < _guiItemList.size() && i >= 0; i += step)
+                {
+                    GuiItem guiItem = _guiItemList.get(i);
+                    if (guiItem instanceof ListItemGroupGuiItem)
+                    {
+                        return guiItem;
+                    }
+                }
+            }
+            }
+        }
+        return null;
+    }
+    
+    public void setFocusedGuiItem(GuiItem focusedGuiItem)
+    {
+        Rectangle repaintArea = new Rectangle(focusedGuiItem.area);
+        if (null != _focusedGuiItem)
+        {
+            repaintArea.add(_focusedGuiItem.area);
+        }
+        
+        _focusedGuiItem = focusedGuiItem;
+        
+        repaint(repaintArea);
+    }
+
+    GuiItem getFocusedGuiItem()
+    {
+        return _focusedGuiItem;
+    }
+
     private void repaint(GuiItem guiItem)
     {
         repaint(guiItem.area);
-    }
-    
-    private void repaint(ListItem item)
-    {
-        ListItemGuiItem guiItem = getListItemGuiItem(item);
-        if (null != guiItem)
-        {
-            repaint(guiItem);
-        }
     }
     
     public void selectItems(ListItem... items)
@@ -680,9 +832,4 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     }
     
-    public void setSelectedItems(ListItem... items)
-    {
-        
-    }
-
 }
