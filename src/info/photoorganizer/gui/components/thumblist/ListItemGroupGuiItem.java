@@ -10,6 +10,11 @@ public class ListItemGroupGuiItem extends GuiItem
     
     private ImageGroup _group = null;
 
+    public ImageGroup getGroup()
+    {
+        return _group;
+    }
+
     public ListItemGroupGuiItem(ImageGroup group, Rectangle area)
     {
         super(area);
@@ -23,6 +28,35 @@ public class ListItemGroupGuiItem extends GuiItem
         g.fill(g.getClipBounds());
         g.setColor(Color.BLACK);
         g.drawString(_group.getHeader(), 0, 20);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((_group == null) ? 0 : _group.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ListItemGroupGuiItem other = (ListItemGroupGuiItem) obj;
+        if (_group == null)
+        {
+            if (other._group != null)
+                return false;
+        }
+        else if (!_group.equals(other._group))
+            return false;
+        return true;
     }
 
 }

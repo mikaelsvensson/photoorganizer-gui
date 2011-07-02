@@ -1,6 +1,7 @@
 package info.photoorganizer.gui.components.thumblist;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 
@@ -20,6 +21,11 @@ public abstract class GuiItem
     public boolean isWithin(Rectangle r)
     {
         return area.intersects(r);
+    }
+    
+    public boolean isCovering(Point p)
+    {
+        return area.contains(p);
     }
     
     public abstract void paintImpl(Graphics2D g);

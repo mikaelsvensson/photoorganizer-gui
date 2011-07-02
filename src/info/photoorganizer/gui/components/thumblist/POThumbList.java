@@ -9,6 +9,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.RenderingHints.Key;
@@ -23,8 +24,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -37,18 +40,85 @@ import com.sun.jmx.remote.util.OrderClassLoaders;
 public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>
 {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+    private static class DemoListItem implements ListItem
+    {
+        File _f = null;
+
+        public DemoListItem(File f)
+        {
+            super();
+            _f = f;
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            DemoListItem other = (DemoListItem) obj;
+            if (_f == null)
+            {
+                if (other._f != null)
+                    return false;
+            }
+            else if (!_f.equals(other._f))
+                return false;
+            return true;
+        }
+
+        @Override
+        public File getFile()
+        {
+            return _f;
+        }
+
+        @Override
+        public Image getImage()
+        {
+            return null;
+        }
+
+        @Override
+        public Map<Object, Object> getMetadata()
+        {
+            return null;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((_f == null) ? 0 : _f.hashCode());
+            return result;
+        }
+
+        @Override
+        public String toString()
+        {
+            return _f.getName();
+        }
+        
+    }
     
-    private MouseSelection _mouseSelection = new MouseSelection(this);
-    private Grid _grid = new FullWidthGrid();
-    private ListItemPainter _painter = new SquarePainter();
-    private int _zoom = 20;
-    //private HashMap<ListItem, ListItemGuiItem> _itemProperties = null;
-    private ArrayList<ListItem> _itemCache = null;
-    private ImageGrouper _grouper = new FileNameGrouper();
+    private static class POThumbListTestDialog extends PODialog
+    {
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+
+        protected POThumbListTestDialog(Container root)
+        {
+            super("TITLE", CloseOperation.DISPOSE_ON_CLOSE, root);
+        }
+        
+    }
     private static final Comparator<GuiItem> ITEM_SORTER = new Comparator<GuiItem>()
     {
         @Override
@@ -66,289 +136,10 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     };
     
-    private SortedSet<GuiItem> _guiItems = new TreeSet<GuiItem>(ITEM_SORTER);
-    
-    public Grid getGrid()
-    {
-        return _grid;
-    }
-    
-    public List<ListItem> getItems()
-    {
-        return Collections.unmodifiableList(_itemCache);
-    }
-    
-    public void setItems(Iterable<ListItem> items)
-    {
-//        _guiItems = new TreeSet<GuiItem>(ITEM_SORTER);
-        _itemCache = new ArrayList<ListItem>();
-//        _itemProperties = new HashMap<ListItem, ListItemGuiItem>();
-        
-        Iterator<ListItem> i = items.iterator();
-        while (i.hasNext())
-        {
-            ListItem item = i.next();
-//            ListItemGuiItem guiItem = new ListItemGuiItem(_painter);
-//            guiItem.item = item;
-            
-            _itemCache.add(item);
-//            _guiItems.add(guiItem);
-        }
-    }
-    
-    public void setGrid(Grid grid)
-    {
-        _grid = grid;
-    }
-
-    public POThumbList()
-    {
-        setPreferredSize(new Dimension(200, 50));
-        setAutoscrolls(true);
-        addMouseWheelListener(new MouseWheelListener()
-        {
-            
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e)
-            {
-                _zoom += e.getWheelRotation();
-                if (_zoom < 1)
-                {
-                    _zoom = 1;
-                }
-                else if (_zoom > 100)
-                {
-                    _zoom = 100;
-                }
-                System.out.println("Zoom level: " + _zoom);
-                repaint();
-            }
-        });
-        addMouseMotionListener(new MouseMotionListener()
-        {
-            
-            @Override
-            public void mouseMoved(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void mouseDragged(MouseEvent e)
-            {
-                scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
-            }
-        });
-        addMouseListener(new MouseListener()
-        {
-            
-            @Override
-            public void mouseReleased(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void mousePressed(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void mouseEntered(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                // TODO Auto-generated method stub
-            }
-        });
-    }
-    
-    int _width = -1;
-
-    @Override
-    protected void paintComponent(Graphics g)
-    {
-        super.paintComponent(g); // Paint background
-        
-        int w = getWidth();
-        int h = getHeight();
-        
-        if (_width != w)
-        {
-            // Component has been resized. Recalculate whatever needs to be recalculated.
-            onViewportSizeChange();
-            _width = w;
-        }
-        
-        Rectangle clipBounds = g.getClipBounds();
-        
-        Graphics2D g2d = (Graphics2D) g.create();
-
-        paint(w, h, getVisibleRect().width, getVisibleRect().height, g2d);
-    }
-
-    private void paint(int componentWidth, int componentHeight, int visibleWidth, int visibleHeight, Graphics2D g)
-    {
-        //double zoomPercent = _zoom/100f;
-        long itemArea = (visibleHeight * visibleWidth * _zoom * _zoom) / (10000); //(long) (visibleHeight * visibleWidth * zoomPercent);
-        double itemAspectRatio = _painter.getWidthToHeightRatio(itemArea);
-
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        int accumulatedY = 0;
-
-        double itemWidth = Math.sqrt(itemAspectRatio * itemArea);
-        double itemHeight = Math.sqrt(itemArea * itemAspectRatio);
-//        int itemsWide = ((_zoom-1) / 10)+1;
-        int itemsWide = (int) (visibleWidth / itemWidth);
-        itemWidth = visibleWidth / itemsWide;
-        itemHeight = itemWidth / itemAspectRatio;
-        //int availableWidth = visibleWidth;
-        System.err.println("itemsWide=" + itemsWide + " itemWidth=" + itemWidth);
-        
-        Rectangle originalClip = g.getClipBounds();
-        
-        _guiItems = new TreeSet<GuiItem>(ITEM_SORTER);
-        
-        for (ImageGroup grp : _grouper.group(_itemCache))
-        {
-            _guiItems.add(new ListItemGroupGuiItem(grp, new Rectangle(0, accumulatedY, visibleWidth - 1, ListItemGroupGuiItem.HEIGHT)));
-            accumulatedY += ListItemGroupGuiItem.HEIGHT;
-            double x = 0;
-            int accumulatedX = 0;
-            int i = 0;
-            int widthLeft = visibleWidth;
-            for (ListItem item : grp.getItems())
-            {
-                if (i == itemsWide)
-                {
-                    i = 0;
-                    x = 0;
-                    accumulatedX = 0;
-                    accumulatedY += itemHeight;
-                }
-                int left = (int) (i * itemWidth);
-                int right = (int) ((i+1) * itemWidth);
-                int itemW = right - left;
-                x += itemHeight * itemAspectRatio;
-                
-                _guiItems.add(new ListItemGuiItem(item, _painter, new Rectangle(accumulatedX, accumulatedY, itemW - 1, (int)itemHeight - 1)));
-                
-                accumulatedX += itemW;
-                i++;
-            }
-            accumulatedY += itemHeight;
-        }
-        
-        
-        g.setClip(originalClip);
-        
-        setPreferredSize(new Dimension(componentWidth, accumulatedY));
-        System.out.println("Preferred size: " + getPreferredSize());
-        for(GuiItem guiItem : _guiItems)
-        {
-            guiItem.paint(g);
-        }
-        drawSelectionRectangle(g);
-        revalidate();
-    }
-
-    private void onViewportSizeChange()
-    {
-        int w = getWidth();
-        int h = getHeight();
-        _grid.updateCellSize(w, h);
-    }
-    
-    private void drawSelectionRectangle(Graphics2D g)
-    {
-        Rectangle mouseDragArea = _mouseSelection.getArea();
-        if (mouseDragArea != null)
-        {
-            g.setColor(new Color(200, 200, 200, 150));
-            g.fill(mouseDragArea);
-            g.setColor(Color.BLACK);
-            g.drawRect(mouseDragArea.x, mouseDragArea.y, mouseDragArea.width-1, mouseDragArea.height-1);
-            System.err.println("Mouse selection: " + mouseDragArea);
-        }
-    }
-
-    private static class POThumbListTestDialog extends PODialog
-    {
-
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 1L;
-
-        protected POThumbListTestDialog(Container root)
-        {
-            super("TITLE", CloseOperation.DISPOSE_ON_CLOSE, root);
-        }
-        
-    }
-    
-    private static class DemoListItem implements ListItem
-    {
-        File _f = null;
-
-        public DemoListItem(File f)
-        {
-            super();
-            _f = f;
-        }
-
-        @Override
-        public Image getImage()
-        {
-            return null;
-        }
-
-        @Override
-        public Map<Object, Object> getMetadata()
-        {
-            return null;
-        }
-
-        @Override
-        public File getFile()
-        {
-            return _f;
-        }
-
-        @Override
-        public String toString()
-        {
-            return _f.getName();
-        }
-        
-    }
-    
-    public List<ListItem> getFolderList(String path)
-    {
-        List<ListItem> items = new ArrayList<ListItem>();
-        for (File f : (new File(path)).listFiles())
-        {
-            items.add(new DemoListItem(f));
-        }
-        return items;
-    }
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     
     public static void main(String[] args)
     {
@@ -363,7 +154,261 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         p.add(scrollPane);
         PODialog.show(new POThumbListTestDialog(scrollPane));
     }
+    
+    boolean _firstPaint = true;
+    
+    private ImageGrouper _grouper = new FileNameGrouper();
+    
+    private Map<ListItemGroupGuiItem, List<ListItemGuiItem>> _guiItemMap = new HashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
+    
+    private ArrayList<ListItem> _items = null;
+    
+    private Rectangle _mouseSelectionArea = null;
+    
+    private Point _mouseSelectionDragStart = null;
+    
+    private ListItemPainter _painter = new SquarePainter();
+    
+    int _width = -1;
+    
+    private int _zoom = 20;
+    
+    public POThumbList()
+    {
+        setPreferredSize(new Dimension(200, 50));
+        setAutoscrolls(true);
+        addMouseWheelListener(new MouseWheelListener()
+        {
+            
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e)
+            {
+                if (e.isControlDown())
+                {
+                    _zoom += e.getWheelRotation();
+                    if (_zoom < 1)
+                    {
+                        _zoom = 1;
+                    }
+                    else if (_zoom > 100)
+                    {
+                        _zoom = 100;
+                    }
+                    System.out.println("Zoom level: " + _zoom);
+                    relayout();
+                }
+            }
+        });
+        addMouseMotionListener(new MouseMotionListener()
+        {
+            
+            @Override
+            public void mouseDragged(MouseEvent e)
+            {
+                scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+                
+                
+                if (_mouseSelectionDragStart == null)
+                {
+                    _mouseSelectionDragStart = e.getPoint();
+                    _mouseSelectionArea = new Rectangle(_mouseSelectionDragStart);
+                }
+                else
+                {
+                    Rectangle repaintArea = null;
+                    int x = e.getX();
+                    int y = e.getY();
+                    x = x > 0 ? x : 0;
+                    y = y > 0 ? y : 0;
+                    
+                    int left = x < _mouseSelectionDragStart.x ? x : _mouseSelectionDragStart.x;
+                    int right = x < _mouseSelectionDragStart.x ? _mouseSelectionDragStart.x : x;
+                    int top = y < _mouseSelectionDragStart.y ? y : _mouseSelectionDragStart.y;
+                    int bottom = y < _mouseSelectionDragStart.y ? _mouseSelectionDragStart.y : y;
+                    
+                    int width = right - left;
+                    int height = bottom - top;
 
+                    Rectangle newMouseDragArea = new Rectangle(left, top, width, height);
+                    repaintArea = newMouseDragArea.union(_mouseSelectionArea);
+                    _mouseSelectionArea = newMouseDragArea;
+                    
+                    repaint(repaintArea);
+                }
+            }
+            
+            @Override
+            public void mouseMoved(MouseEvent e)
+            {
+            }
+        });
+        addMouseListener(new MouseListener()
+        {
+            
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+            }
+            
+            @Override
+            public void mousePressed(MouseEvent e)
+            {
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e)
+            {
+                Rectangle repaintArea = new Rectangle();
+                
+                Rectangle oldDragArea = _mouseSelectionArea;
+                
+                Rectangle mouseSelectionArea = _mouseSelectionArea;
+                List<ListItem> items = null;
+                if (null != mouseSelectionArea)
+                {
+                    for (ListItemGuiItem item : getGuiItemsInArea(mouseSelectionArea))
+                    {
+                        item.isSelected = !item.isSelected;
+                        repaintArea.add(item.area);
+                    }
+                }
+                else
+                {
+                    ListItemGuiItem item = getGuiItemAtPoint(e.getPoint());
+                    if (item != null)
+                    {
+                        item.isSelected = !item.isSelected;
+                        
+                        repaintArea.add(item.area);
+                    }
+                }
+                
+                _mouseSelectionDragStart = null;
+                _mouseSelectionArea = null;
+                if (null != oldDragArea)
+                {
+                    repaintArea.add(oldDragArea);
+                }
+                
+                repaint(repaintArea);
+                
+            }
+        });
+    }
+    
+    public void deselectItems(ListItem... items)
+    {
+        for (ListItem item : items)
+        {
+            setItemSelectionStatus(item, false);
+        }
+    }
+    
+    public List<ListItem> getFolderList(String path)
+    {
+        List<ListItem> items = new ArrayList<ListItem>();
+        for (File f : (new File(path)).listFiles())
+        {
+            items.add(new DemoListItem(f));
+        }
+        return items;
+    }
+    
+    ListItemGroupGuiItem getGroupGuiItem(ImageGroup group)
+    {
+        for (ListItemGroupGuiItem guiItem : _guiItemMap.keySet())
+        {
+            if (guiItem.getGroup() == group)
+            {
+                return guiItem;
+            }
+        }
+        return null;
+    }
+    ListItemGuiItem getGuiItemAtPoint(Point coord)
+    {
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        {
+            for (ListItemGuiItem item : entry.getValue())
+            {
+                if (item.isCovering(coord))
+                {
+                    return item;
+                }
+            }
+        }
+        return null;
+    }
+
+    List<ListItemGuiItem> getGuiItemsInArea(Rectangle area)
+    {
+        List<ListItemGuiItem> res = new ArrayList<ListItemGuiItem>();
+        
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        {
+            for (ListItemGuiItem item : entry.getValue())
+            {
+                if (item.isWithin(area))
+                {
+                    res.add(item);
+                }
+            }
+        }
+
+        return res;
+    }
+    
+    public List<ListItem> getItems()
+    {
+        return Collections.unmodifiableList(_items);
+    }
+
+    ListItem getListItemAtPoint(Point coord)
+    {
+        GuiItem guiItem = getGuiItemAtPoint(coord);
+        if (guiItem instanceof ListItemGuiItem)
+        {
+            return ((ListItemGuiItem)guiItem).item;
+        }
+        return null;
+    }
+
+    ListItemGuiItem getListItemGuiItem(ListItem item)
+    {
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        {
+            List<ListItemGuiItem> guiItems = entry.getValue();
+            ListItemGuiItem listItem = getListItemGuiItem(item, guiItems);
+            if (null != listItem)
+            {
+                return listItem;
+            }
+        }
+        return null;
+    }
+
+    private ListItemGuiItem getListItemGuiItem(ListItem item, List<ListItemGuiItem> guiItems)
+    {
+        for (ListItemGuiItem guiItem : guiItems)
+        {
+            if (guiItem.item == item)
+            {
+                return guiItem;
+            }
+        }
+        return null;
+    }
+    
     @Override
     public Dimension getPreferredScrollableViewportSize()
     {
@@ -375,7 +420,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         return 100;
     }
-
+    
     @Override
     public boolean getScrollableTracksViewportHeight()
     {
@@ -387,33 +432,257 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         return true;
     }
-
+    
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
     {
         return 10;
     }
-
+    
+    private boolean isItemSelected(ListItem item)
+    {
+        ListItemGuiItem listItemGuiItem = getListItemGuiItem(item);
+        if (listItemGuiItem != null)
+        {
+            return listItemGuiItem.isSelected;
+        }
+        return false;
+    }
+    
     @Override
     public Iterator<ListItem> iterator()
     {
-        return _itemCache.iterator();
+        return _items.iterator();
     }
-    
-    List<ListItem> getItemsInArea(Rectangle area)
+
+    private void paint(Dimension componentSize, Dimension visibleSize, Graphics2D g)
     {
-        List<ListItem> res = new ArrayList<ListItem>();
-        for (GuiItem guiItem : _guiItems)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Rectangle originalClip = g.getClipBounds();
+        
+        paintGuiItems(g);
+        
+        paintSelectionRectangle(g);
+        
+        g.setClip(originalClip);
+        
+        revalidate();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g)
+    {
+        super.paintComponent(g); // Paint background
+        
+        if (_firstPaint)
         {
-            if (guiItem instanceof ListItemGuiItem)
+            regroup(_grouper);
+            relayout();
+            _firstPaint = false;
+        }
+        
+        int w = getWidth();
+        int h = getHeight();
+        
+        if (_width != w)
+        {
+            // Component has been resized. Recalculate whatever needs to be recalculated.
+            relayout();
+            _width = w;
+        }
+        
+        Rectangle clipBounds = g.getClipBounds();
+        
+        Graphics2D g2d = (Graphics2D) g.create();
+
+        paint(getSize(), getVisibleRect().getSize(), g2d);
+    }
+
+    private void paintGuiItems(Graphics2D g)
+    {
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        {
+            entry.getKey().paint(g);
+            for (ListItemGuiItem item : entry.getValue())
             {
-                if (guiItem.isWithin(area))
-                {
-                    res.add(((ListItemGuiItem) guiItem).item);
-                }
+                item.paint(g);
             }
         }
-        return res;
+    }
+
+    private void paintSelectionRectangle(Graphics2D g)
+    {
+        Rectangle mouseDragArea = _mouseSelectionArea;
+        if (mouseDragArea != null)
+        {
+            g.setColor(new Color(200, 200, 200, 150));
+            g.fill(mouseDragArea);
+            g.setColor(Color.BLACK);
+            g.drawRect(mouseDragArea.x, mouseDragArea.y, mouseDragArea.width-1, mouseDragArea.height-1);
+            System.err.println("Mouse selection: " + mouseDragArea);
+        }
+    }
+
+    private void regroup(ImageGrouper grouper)
+    {
+        Map<ListItemGroupGuiItem, List<ListItemGuiItem>> newGuiItemMap = new HashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
+        
+        for (ImageGroup grp : grouper.group(_items))
+        {
+            
+            ListItemGroupGuiItem groupGuiItem = getGroupGuiItem(grp);
+            if (groupGuiItem == null)
+            {
+                groupGuiItem = new ListItemGroupGuiItem(grp, new Rectangle());
+            }
+            
+            ArrayList<ListItemGuiItem> itemList = new ArrayList<ListItemGuiItem>();
+            newGuiItemMap.put(groupGuiItem, itemList);
+            
+            for (ListItem item : grp.getItems())
+            {
+                ListItemGuiItem imageGuiItem = getListItemGuiItem(item);
+                if (imageGuiItem == null)
+                {
+                    imageGuiItem = new ListItemGuiItem(item, _painter, new Rectangle());
+                }
+                itemList.add(imageGuiItem);
+            }
+        }
+        _guiItemMap = newGuiItemMap;
+        
+        relayout();
+        
+        repaint();
+    }
+
+    private void relayout()
+    {
+        Dimension componentSize = getSize();
+        Dimension visibleSize = getVisibleRect().getSize();
+        
+        int visibleWidth = visibleSize.width;
+        int visibleHeight = visibleSize.height;
+        int componentWidth = componentSize.width;
+        int componentHeight = componentSize.height;
+        
+        long itemArea = (visibleHeight * visibleWidth * _zoom * _zoom) / (10000); //(long) (visibleHeight * visibleWidth * zoomPercent);
+        
+        if (itemArea == 0)
+        {
+            return;
+        }
+        double itemAspectRatio = _painter.getWidthToHeightRatio(itemArea);
+
+
+        int accumulatedY = 0;
+
+        double itemWidth = Math.sqrt(itemAspectRatio * itemArea);
+        double itemHeight = Math.sqrt(itemArea * itemAspectRatio);
+        int itemsWide = (int) (visibleWidth / itemWidth);
+        itemWidth = visibleWidth / itemsWide;
+        itemHeight = itemWidth / itemAspectRatio;
+//        System.err.println("itemsWide=" + itemsWide + " itemWidth=" + itemWidth);
+
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        {
+            
+            GuiItem groupGuiItem = entry.getKey();
+            groupGuiItem.area.x = 0;
+            groupGuiItem.area.y = accumulatedY;
+            groupGuiItem.area.width = visibleWidth - 1;
+            groupGuiItem.area.height = ListItemGroupGuiItem.HEIGHT;
+
+            accumulatedY += ListItemGroupGuiItem.HEIGHT;
+            double x = 0;
+            int accumulatedX = 0;
+            int i = 0;
+            int widthLeft = visibleWidth;
+            
+            for (ListItemGuiItem listItemGuiItem : entry.getValue())
+            {
+            
+                ListItem item = listItemGuiItem.item;
+                if (i == itemsWide)
+                {
+                    i = 0;
+                    x = 0;
+                    accumulatedX = 0;
+                    accumulatedY += itemHeight;
+                }
+                int left = (int) (i * itemWidth);
+                int right = (int) ((i+1) * itemWidth);
+                int itemW = right - left;
+                x += itemHeight * itemAspectRatio;
+                
+                GuiItem imageGuiItem = getListItemGuiItem(item);
+                imageGuiItem.area.x = accumulatedX;
+                imageGuiItem.area.y = accumulatedY;
+                imageGuiItem.area.width = itemW - 1;
+                imageGuiItem.area.height = (int)itemHeight - 1;
+                
+                accumulatedX += itemW;
+                i++;
+            }
+            accumulatedY += itemHeight;
+        }
+        
+        
+        setPreferredSize(new Dimension(componentWidth, accumulatedY));
+        System.out.println("Preferred size: " + getPreferredSize());
+        
+        repaint();
+    }
+    
+    private void repaint(GuiItem guiItem)
+    {
+        repaint(guiItem.area);
+    }
+    
+    private void repaint(ListItem item)
+    {
+        ListItemGuiItem guiItem = getListItemGuiItem(item);
+        if (null != guiItem)
+        {
+            repaint(guiItem);
+        }
+    }
+    
+    public void selectItems(ListItem... items)
+    {
+        for (ListItem item : items)
+        {
+            setItemSelectionStatus(item, true);
+        }
+    }
+
+    public void setItems(Iterable<ListItem> items)
+    {
+        _items = new ArrayList<ListItem>();
+        
+        Iterator<ListItem> i = items.iterator();
+        while (i.hasNext())
+        {
+            ListItem item = i.next();
+            _items.add(item);
+        }
+        
+        regroup(_grouper);
+    }
+    
+    private void setItemSelectionStatus(ListItem item, boolean selected)
+    {
+        ListItemGuiItem listItemGuiItem = getListItemGuiItem(item);
+        if (listItemGuiItem != null)
+        {
+            listItemGuiItem.isSelected = selected;
+            return;
+        }
+    }
+    
+    public void setSelectedItems(ListItem... items)
+    {
+        
     }
 
 }

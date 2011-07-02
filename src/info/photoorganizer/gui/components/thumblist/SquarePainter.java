@@ -15,11 +15,11 @@ public class SquarePainter implements ListItemPainter
     }
 
     @Override
-    public void paint(ListItem item, Graphics2D g)
+    public void paint(ListItem item, boolean isSelected, Graphics2D g)
     {
         Rectangle r = g.getClipBounds();
         
-        g.setColor(Color.YELLOW);
+        g.setColor(isSelected ? Color.GRAY : Color.YELLOW);
         g.fill(r);
         
         g.setColor(Color.BLACK);

@@ -13,5 +13,5 @@ public interface ListItemPainter
      */
     double getWidthToHeightRatio(long area);
 
-    void paint(ListItem item, Graphics2D g);
+    void paint(ListItem item, boolean isSelected, Graphics2D g);
 }
