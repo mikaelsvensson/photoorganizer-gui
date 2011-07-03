@@ -259,15 +259,15 @@ public abstract class PODialog extends JDialog
         PODialogTheme.applyTheme(PODialogTheme.LIGHT_GREY);
     }
 
-    protected PODialog(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, JPanel rootPanel)
+    protected PODialog(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
     {
-        this(owner, title, modal, -1, -1, defaultCloseOperation, rootPanel);
+        this(owner, title, modal, -1, -1, defaultCloseOperation, root);
     }
     
-    protected PODialog(PODialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, JPanel rootPanel)
+    protected PODialog(PODialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
     {
         super(owner, modal);
-        setContentPane(rootPanel);
+        setContentPane(root);
         setTitle(getI18nText(title));
         setDefaultCloseOperation(defaultCloseOperation.getValue());
         if (width >= 0 && height >= 0)
@@ -277,19 +277,19 @@ public abstract class PODialog extends JDialog
         }
     }
     
-    protected PODialog(PODialog owner, String title, CloseOperation defaultCloseOperation, JPanel rootPanel)
+    protected PODialog(PODialog owner, String title, CloseOperation defaultCloseOperation, Container root)
     {
-        this(owner, title, true, -1, -1, defaultCloseOperation, rootPanel);
+        this(owner, title, true, -1, -1, defaultCloseOperation, root);
     }
     
-    protected PODialog(String title, CloseOperation defaultCloseOperation, JPanel rootPanel)
+    protected PODialog(String title, CloseOperation defaultCloseOperation, Container root)
     {
-        this(null, title, false, -1, -1, defaultCloseOperation, rootPanel);
+        this(null, title, false, -1, -1, defaultCloseOperation, root);
     }
     
-    protected PODialog(String title, int width, int height, CloseOperation defaultCloseOperation, JPanel rootPanel)
+    protected PODialog(String title, int width, int height, CloseOperation defaultCloseOperation, Container root)
     {
-        this(null, title, false, width, height, defaultCloseOperation, rootPanel);
+        this(null, title, false, width, height, defaultCloseOperation, root);
     }
     
     private void recalculateContentPaneSize()
