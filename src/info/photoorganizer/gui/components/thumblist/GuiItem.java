@@ -18,12 +18,14 @@ public abstract class GuiItem
      */
     public Rectangle area = null;
     
-    public boolean isWithin(Rectangle r)
+    public boolean isVisible = true;
+    
+    public boolean intersects(Rectangle r)
     {
         return area.intersects(r);
     }
     
-    public boolean isCovering(Point p)
+    public boolean contains(Point p)
     {
         return area.contains(p);
     }

@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -334,9 +335,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 {
                     repaintArea.add(_mouseSelectionArea);
                     
-                    for (ListItemGuiItem item : getGuiItemsInArea(_mouseSelectionArea))
+                    for (GuiItem item : getGuiItemsInArea(_mouseSelectionArea))
                     {
-                        item.isSelected = !item.isSelected;
+                        if (item instanceof ListItemGuiItem)
+                        {
+                            onListItemClick((ListItemGuiItem)item);
+                        }
                         repaintArea.add(item.area);
                     }
                 }
@@ -347,18 +351,19 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                     {
                         if (item instanceof ListItemGuiItem)
                         {
-                            ListItemGuiItem listItemGuiItem = (ListItemGuiItem)item;
-                            listItemGuiItem.isSelected = !listItemGuiItem.isSelected;
+                            onListItemClick((ListItemGuiItem) item);
                         }
+                        else if (item instanceof ListItemGroupGuiItem)
+                        {
+                            onListItemGroupClick((ListItemGroupGuiItem) item);
+                        }
+                        repaintArea.add(item.area);
 
                         if (null != _focusedGuiItem)
                         {
                             repaintArea.add(_focusedGuiItem.area);
                         }
-                        
                         setFocusedGuiItem(item);
-                        
-                        repaintArea.add(item.area);
                     }
                 }
                 
@@ -367,6 +372,17 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 
                 repaint(repaintArea);
                 
+            }
+
+            private void onListItemClick(ListItemGuiItem guiItem)
+            {
+                guiItem.isSelected = !guiItem.isSelected;
+            }
+            
+            private void onListItemGroupClick(ListItemGroupGuiItem guiItem)
+            {
+                guiItem.isExpanded = !guiItem.isExpanded;
+                relayout();
             }
         });
     }
@@ -390,43 +406,29 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
         return null;
     }
+    
     GuiItem getGuiItemAtPoint(Point coord)
     {
         for (GuiItem guiItem : _guiItemList)
         {
-            if (guiItem.isCovering(coord))
+            if (guiItem.isVisible && guiItem.contains(coord))
             {
                 return guiItem;
             }
         }
-//        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
-//        {
-//            for (ListItemGuiItem item : entry.getValue())
-//            {
-//                if (item.isCovering(coord))
-//                {
-//                    return item;
-//                }
-//            }
-//        }
         return null;
     }
 
-    List<ListItemGuiItem> getGuiItemsInArea(Rectangle area)
+    List<GuiItem> getGuiItemsInArea(Rectangle area)
     {
-        List<ListItemGuiItem> res = new ArrayList<ListItemGuiItem>();
-        
-        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        List<GuiItem> res = new ArrayList<GuiItem>();
+        for (GuiItem guiItem : _guiItemList)
         {
-            for (ListItemGuiItem item : entry.getValue())
+            if (guiItem.isVisible && guiItem.intersects(area))
             {
-                if (item.isWithin(area))
-                {
-                    res.add(item);
-                }
+                res.add(guiItem);
             }
         }
-
         return res;
     }
     
@@ -542,6 +544,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         {
             BasicStroke stroke = new BasicStroke(0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0, new float[] {2,2}, 0);
             Rectangle focusRect = new Rectangle(_focusedGuiItem.area.x, _focusedGuiItem.area.y, _focusedGuiItem.area.width - 1, _focusedGuiItem.area.height - 1);
+            System.err.println("paintFocusIndicator " + focusRect);
             g.draw(stroke.createStrokedShape(focusRect));
         }
     }
@@ -571,14 +574,22 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
 
     private void paintGuiItems(Graphics2D g)
     {
-        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        System.err.println("Paint " + g.getClipBounds());
+        for (GuiItem guiItem : _guiItemList)
         {
-            entry.getKey().paint(g);
-            for (ListItemGuiItem item : entry.getValue())
+            if (guiItem.isVisible)
             {
-                item.paint(g);
+                guiItem.paint(g);
             }
         }
+//        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+//        {
+//            entry.getKey().paint(g);
+//            for (ListItemGuiItem item : entry.getValue())
+//            {
+//                item.paint(g);
+//            }
+//        }
     }
 
     private void paintSelectionRectangle(Graphics2D g)
@@ -639,6 +650,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         Dimension componentSize = getSize();
         Dimension visibleSize = getVisibleRect().getSize();
+        Insets insets = getInsets();
         
         int visibleWidth = visibleSize.width;
         int visibleHeight = visibleSize.height;
@@ -663,10 +675,11 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         itemHeight = itemWidth / itemAspectRatio;
 //        System.err.println("itemsWide=" + itemsWide + " itemWidth=" + itemWidth);
 
-        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
+        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap
+                .entrySet())
         {
-            
-            GuiItem groupGuiItem = entry.getKey();
+
+            ListItemGroupGuiItem groupGuiItem = entry.getKey();
             groupGuiItem.area.x = 0;
             groupGuiItem.area.y = accumulatedY;
             groupGuiItem.area.width = visibleWidth - 1;
@@ -677,33 +690,43 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             int accumulatedX = 0;
             int i = 0;
             int widthLeft = visibleWidth;
-            
-            for (ListItemGuiItem listItemGuiItem : entry.getValue())
+
+            if (entry.getValue().size() > 0)
             {
-            
-                ListItem item = listItemGuiItem.item;
-                if (i == itemsWide)
+                for (ListItemGuiItem listItemGuiItem : entry.getValue())
                 {
-                    i = 0;
-                    x = 0;
-                    accumulatedX = 0;
+    
+                    listItemGuiItem.isVisible = groupGuiItem.isExpanded;
+                    if (groupGuiItem.isExpanded)
+                    {
+                        ListItem item = listItemGuiItem.item;
+                        if (i == itemsWide)
+                        {
+                            i = 0;
+                            x = 0;
+                            accumulatedX = 0;
+                            accumulatedY += itemHeight;
+                        }
+                        int left = (int) (i * itemWidth);
+                        int right = (int) ((i + 1) * itemWidth);
+                        int itemW = right - left;
+                        x += itemHeight * itemAspectRatio;
+    
+                        GuiItem imageGuiItem = getListItemGuiItem(item);
+                        imageGuiItem.area.x = accumulatedX;
+                        imageGuiItem.area.y = accumulatedY;
+                        imageGuiItem.area.width = itemW - 1;
+                        imageGuiItem.area.height = (int) itemHeight - 1;
+    
+                        accumulatedX += itemW;
+                        i++;
+                    }
+                }
+                if (groupGuiItem.isExpanded)
+                {
                     accumulatedY += itemHeight;
                 }
-                int left = (int) (i * itemWidth);
-                int right = (int) ((i+1) * itemWidth);
-                int itemW = right - left;
-                x += itemHeight * itemAspectRatio;
-                
-                GuiItem imageGuiItem = getListItemGuiItem(item);
-                imageGuiItem.area.x = accumulatedX;
-                imageGuiItem.area.y = accumulatedY;
-                imageGuiItem.area.width = itemW - 1;
-                imageGuiItem.area.height = (int)itemHeight - 1;
-                
-                accumulatedX += itemW;
-                i++;
             }
-            accumulatedY += itemHeight;
         }
         
         
@@ -725,7 +748,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 for (int i = basePos + 1; i < _guiItemList.size(); i++)
                 {
                     GuiItem guiItem = _guiItemList.get(i);
-                    if (guiItem.area.y > base.area.y && guiItem.area.x >= base.area.x)
+                    if (guiItem.isVisible && guiItem.area.y > base.area.y && guiItem.area.x >= base.area.x)
                     {
                         return guiItem;
                     }
@@ -737,7 +760,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 for (int i = basePos - 1; i >= 0; i--)
                 {
                     GuiItem guiItem = _guiItemList.get(i);
-                    if (guiItem.area.y < base.area.y && guiItem.area.x <= base.area.x)
+                    if (guiItem.isVisible && guiItem.area.y < base.area.y && guiItem.area.x <= base.area.x)
                     {
                         return guiItem;
                     }
@@ -748,17 +771,23 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             case RIGHT:
                 break;
             case NEXT:
-                if (basePos < _guiItemList.size() - 1)
-                {
-                    return _guiItemList.get(basePos + 1);
-                }
-                break;
             case PREVIOUS:
-                if (basePos > 0)
+            {
+                int step = relationship == GuiItemRelationship.NEXT ? 1 : -1;
+                for (int i = basePos + step; i < _guiItemList.size() && i >= 0; i += step)
                 {
-                    return _guiItemList.get(basePos - 1);
+                    GuiItem guiItem = _guiItemList.get(i);
+                    if (guiItem.isVisible)
+                    {
+                        return guiItem;
+                    }
                 }
+//                if (basePos > 0)
+//                {
+//                    return _guiItemList.get(basePos - 1);
+//                }
                 break;
+            }
             case NEXT_GROUP:
             case PREVIOUS_GROUP:
             {
@@ -766,7 +795,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 for (int i = basePos + step; i < _guiItemList.size() && i >= 0; i += step)
                 {
                     GuiItem guiItem = _guiItemList.get(i);
-                    if (guiItem instanceof ListItemGroupGuiItem)
+                    if (guiItem.isVisible && guiItem instanceof ListItemGroupGuiItem)
                     {
                         return guiItem;
                     }
@@ -779,6 +808,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     
     public void setFocusedGuiItem(GuiItem focusedGuiItem)
     {
+        System.err.println("setFocusedGuiItem(" + focusedGuiItem + ")");
         Rectangle repaintArea = new Rectangle(focusedGuiItem.area);
         if (null != _focusedGuiItem)
         {
@@ -787,7 +817,9 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         
         _focusedGuiItem = focusedGuiItem;
         
-        repaint(repaintArea);
+        repaint(/*repaintArea*/);
+        scrollRectToVisible(_focusedGuiItem.area);
+//        scrollRectToVisible(repaintArea);
     }
 
     GuiItem getFocusedGuiItem()
@@ -795,11 +827,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return _focusedGuiItem;
     }
 
-    private void repaint(GuiItem guiItem)
-    {
-        repaint(guiItem.area);
-    }
-    
     public void selectItems(ListItem... items)
     {
         for (ListItem item : items)

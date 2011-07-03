@@ -9,6 +9,8 @@ public class ListItemGroupGuiItem extends GuiItem
     public static final int HEIGHT = 30;
     
     private ImageGroup _group = null;
+    
+    public boolean isExpanded = true;
 
     public ImageGroup getGroup()
     {
