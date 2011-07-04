@@ -44,6 +44,8 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 
+import sun.net.www.content.image.gif;
+
 import com.sun.jmx.remote.util.OrderClassLoaders;
 
 public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>
@@ -331,6 +333,11 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             {
                 Rectangle repaintArea = new Rectangle();
                 
+                boolean extendSelection = e.isControlDown();
+                if (!extendSelection)
+                {
+                    deselectItems(getSelectedItems());
+                }
                 if (null != _mouseSelectionArea)
                 {
                     repaintArea.add(_mouseSelectionArea);
@@ -339,7 +346,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                     {
                         if (item instanceof ListItemGuiItem)
                         {
-                            onListItemClick((ListItemGuiItem)item);
+                            ((ListItemGuiItem)item).isSelected = true;
                         }
                         repaintArea.add(item.area);
                     }
@@ -351,13 +358,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                     {
                         if (item instanceof ListItemGuiItem)
                         {
-                            onListItemClick((ListItemGuiItem) item);
+                            onListItemClick((ListItemGuiItem) item, repaintArea, e);
                         }
                         else if (item instanceof ListItemGroupGuiItem)
                         {
-                            onListItemGroupClick((ListItemGroupGuiItem) item);
+                            onListItemGroupClick((ListItemGroupGuiItem) item, repaintArea, e);
                         }
-                        repaintArea.add(item.area);
 
                         if (null != _focusedGuiItem)
                         {
@@ -374,25 +380,61 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 
             }
 
-            private void onListItemClick(ListItemGuiItem guiItem)
+            private void onListItemClick(ListItemGuiItem guiItem, Rectangle repaintArea, MouseEvent e)
             {
-                guiItem.isSelected = !guiItem.isSelected;
+                List<ListItemGuiItem> affectedItems = new ArrayList<ListItemGuiItem>();
+                if (e.isShiftDown())
+                {
+                    int newPos = _guiItemList.indexOf(guiItem);
+                    int oldPos = _focusedGuiItem != null ? _guiItemList.indexOf(_focusedGuiItem) : 0;
+                    int startPos = Math.min(newPos, oldPos);
+                    int endPos = Math.max(newPos, oldPos);
+                    for (int i = startPos; i <= endPos; i++)
+                    {
+                        GuiItem gI = _guiItemList.get(i);
+                        if (gI instanceof ListItemGuiItem)
+                        {
+                            ((ListItemGuiItem)gI).isSelected = true;
+                            repaintArea.add(gI.area);
+                        }
+                    }
+                }
+                else
+                {
+                    guiItem.isSelected = !guiItem.isSelected;
+                    repaintArea.add(guiItem.area);
+                }
             }
             
-            private void onListItemGroupClick(ListItemGroupGuiItem guiItem)
+            private void onListItemGroupClick(ListItemGroupGuiItem guiItem, Rectangle repaintArea, MouseEvent e)
             {
                 guiItem.isExpanded = !guiItem.isExpanded;
+                repaintArea.add(guiItem.area);
                 relayout();
             }
         });
     }
     
-    public void deselectItems(ListItem... items)
+    public List<ListItem> getSelectedItems()
     {
-        for (ListItem item : items)
+        List<ListItem> res = new ArrayList<ListItem>();
+        for (GuiItem guiItem : _guiItemList)
         {
-            setItemSelectionStatus(item, false);
+            if (guiItem instanceof ListItemGuiItem)
+            {
+                ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
+                if (listItemGuiItem.isSelected)
+                {
+                    res.add(listItemGuiItem.item);
+                }
+            }
         }
+        return res;
+    }
+    
+    public void deselectItems(List<ListItem> items)
+    {
+        setItemsSelectionStatus(items, false);
     }
     
     ListItemGroupGuiItem getGroupGuiItem(ImageGroup group)
@@ -745,15 +787,27 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             {
             case DOWN:
             {
+                GuiItem candidate = null;
                 for (int i = basePos + 1; i < _guiItemList.size(); i++)
                 {
                     GuiItem guiItem = _guiItemList.get(i);
-                    if (guiItem.isVisible && guiItem.area.y > base.area.y && guiItem.area.x >= base.area.x)
+                    if (guiItem.isVisible && guiItem.area.y > base.area.y)
                     {
-                        return guiItem;
+                        if (null == candidate)
+                        {
+                            candidate = guiItem;
+                        }
+                        if (candidate.area.y < guiItem.area.y)
+                        {
+                            return candidate;
+                        }
+                        else if (guiItem.area.x >= base.area.x)
+                        {
+                            return guiItem;
+                        }
                     }
                 }
-                break;
+                return candidate;
             }
             case UP:
             {
@@ -827,12 +881,9 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return _focusedGuiItem;
     }
 
-    public void selectItems(ListItem... items)
+    public void selectItems(List<ListItem> items)
     {
-        for (ListItem item : items)
-        {
-            setItemSelectionStatus(item, true);
-        }
+        setItemsSelectionStatus(items, true);
     }
 
     public void setItems(Iterable<ListItem> items)
@@ -849,14 +900,22 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         regroup(_grouper);
     }
     
-    private void setItemSelectionStatus(ListItem item, boolean selected)
+    private void setItemsSelectionStatus(List<ListItem> items, boolean selected)
     {
-        ListItemGuiItem listItemGuiItem = getListItemGuiItem(item);
-        if (listItemGuiItem != null)
+        Rectangle repaintArea = new Rectangle();
+        for (GuiItem guiItem : _guiItemList)
         {
-            listItemGuiItem.isSelected = selected;
-            return;
+            if (guiItem instanceof ListItemGuiItem)
+            {
+                ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
+                if (items.contains(listItemGuiItem.item))
+                {
+                    listItemGuiItem.isSelected = selected;
+                    repaintArea.add(listItemGuiItem.area);
+                }
+            }
         }
+        repaint(repaintArea);
     }
     
 }
