@@ -307,6 +307,8 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         addMouseListener(new MouseListener()
         {
             
+            private GuiItem _shiftSelectionOldItem = null;
+            
             @Override
             public void mouseClicked(MouseEvent e)
             {
@@ -385,8 +387,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 List<ListItemGuiItem> affectedItems = new ArrayList<ListItemGuiItem>();
                 if (e.isShiftDown())
                 {
+                    if (null == _shiftSelectionOldItem)
+                    {
+                        _shiftSelectionOldItem = _focusedGuiItem;
+                    }
                     int newPos = _guiItemList.indexOf(guiItem);
-                    int oldPos = _focusedGuiItem != null ? _guiItemList.indexOf(_focusedGuiItem) : 0;
+                    int oldPos = _shiftSelectionOldItem != null ? _guiItemList.indexOf(_shiftSelectionOldItem) : 0;
                     int startPos = Math.min(newPos, oldPos);
                     int endPos = Math.max(newPos, oldPos);
                     for (int i = startPos; i <= endPos; i++)
@@ -403,6 +409,8 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 {
                     guiItem.isSelected = !guiItem.isSelected;
                     repaintArea.add(guiItem.area);
+                    
+                    _shiftSelectionOldItem = null;
                 }
             }
             
