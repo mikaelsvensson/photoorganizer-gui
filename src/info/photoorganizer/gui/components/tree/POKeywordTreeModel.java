@@ -17,17 +17,17 @@ public class POKeywordTreeModel extends POTreeModel implements KeywordTagDefinit
 {
     private KeywordTagDefinition root = null;
     
-    public POKeywordTreeModel(KeywordTagDefinition root)
-    {
-        super();
-        this.root = root;
-        this.root.addKeywordEventListener(this);
-    }
-    
     public POKeywordTreeModel(Database database)
     {
         super();
         this.root = database.getRootKeyword();
+        this.root.addKeywordEventListener(this);
+    }
+    
+    public POKeywordTreeModel(KeywordTagDefinition root)
+    {
+        super();
+        this.root = root;
         this.root.addKeywordEventListener(this);
     }
 
@@ -62,6 +62,26 @@ public class POKeywordTreeModel extends POTreeModel implements KeywordTagDefinit
     }
     
     @Override
+    public void keywordInserted(KeywordTagDefinitionEvent keywordEvent)
+    {
+        fireTreeNodesInsertedEvent(
+                keywordEvent.getSource(), 
+                keywordEvent.getSource().getPath(), 
+                keywordEvent.getTargetIndices(), 
+                keywordEvent.getTargets()
+                );
+    }
+    
+    @Override
+    public void keywordStructureChanged(KeywordTagDefinitionEvent keywordEvent)
+    {
+        fireTreeStructureChangedEvent(
+                keywordEvent.getSource(), 
+                keywordEvent.getSource().getPath()
+                );
+    }
+    
+    @Override
     public void tagChanged(TagDefinitionEvent event)
     {
         if (event instanceof KeywordTagDefinitionEvent)
@@ -89,26 +109,6 @@ public class POKeywordTreeModel extends POTreeModel implements KeywordTagDefinit
                     keywordEvent.getTargets()
                     );
         }
-    }
-    
-    @Override
-    public void keywordInserted(KeywordTagDefinitionEvent keywordEvent)
-    {
-        fireTreeNodesInsertedEvent(
-                keywordEvent.getSource(), 
-                keywordEvent.getSource().getPath(), 
-                keywordEvent.getTargetIndices(), 
-                keywordEvent.getTargets()
-                );
-    }
-    
-    @Override
-    public void keywordStructureChanged(KeywordTagDefinitionEvent keywordEvent)
-    {
-        fireTreeStructureChangedEvent(
-                keywordEvent.getSource(), 
-                keywordEvent.getSource().getPath()
-                );
     }
     
     @Override

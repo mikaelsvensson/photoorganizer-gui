@@ -29,7 +29,7 @@ public class POKeywordTreeTransferHandler extends TransferHandler
     
     private POKeywordTreeModel _tree = null;
 
-    public POKeywordTreeTransferHandler(POTreePanel<POKeywordTreeModel> poTree)
+    public POKeywordTreeTransferHandler(POTreePanel<POKeywordTreeModel, KeywordTagDefinition> poTree)
     {
         super();
         _tree = poTree.getTreeModel();

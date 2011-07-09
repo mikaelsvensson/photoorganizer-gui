@@ -55,13 +55,9 @@ public abstract class POTreeModel implements TreeModel
         _treeStructureChangedEvent.addListener(l);
     }
     
-    @Override
-    public void removeTreeModelListener(TreeModelListener l)
+    protected void fireTreeNodesInsertedEvent(Object source, Object[] path, int[] childIndices, Object[] children)
     {
-        _treeNodesChangedEvent.removeListener(l);
-        _treeNodesInsertedEvent.removeListener(l);
-        _treeNodesRemovedEvent.removeListener(l);
-        _treeStructureChangedEvent.removeListener(l);
+        _treeNodesInsertedEvent.fire(new TreeModelEvent(source, path, childIndices, children));
     }
     
     protected void fireTreeNodesRemovedEvent(Object source, Object[] path, int[] childIndices, Object[] children)
@@ -69,13 +65,17 @@ public abstract class POTreeModel implements TreeModel
         _treeNodesRemovedEvent.fire(new TreeModelEvent(source, path, childIndices, children));
     }
 
-    protected void fireTreeNodesInsertedEvent(Object source, Object[] path, int[] childIndices, Object[] children)
-    {
-        _treeNodesInsertedEvent.fire(new TreeModelEvent(source, path, childIndices, children));
-    }
-
     protected void fireTreeStructureChangedEvent(Object source, Object[] path)
     {
         _treeStructureChangedEvent.fire(new TreeModelEvent(source, path));
+    }
+
+    @Override
+    public void removeTreeModelListener(TreeModelListener l)
+    {
+        _treeNodesChangedEvent.removeListener(l);
+        _treeNodesInsertedEvent.removeListener(l);
+        _treeNodesRemovedEvent.removeListener(l);
+        _treeStructureChangedEvent.removeListener(l);
     }
 }

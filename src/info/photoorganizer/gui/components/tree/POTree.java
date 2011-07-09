@@ -1,27 +1,23 @@
 package info.photoorganizer.gui.components.tree;
 
-import info.photoorganizer.metadata.KeywordTagDefinition;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTree;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-final class POTree<T> extends JTree implements TreeSelectionListener
+final class POTree<T> extends JTree /*implements TreeSelectionListener*/
 {
     private static final long serialVersionUID = 1L;
     
-    private ArrayList<T> _selection = new ArrayList<T>();
+//    private ArrayList<T> _selection = new ArrayList<T>();
 
     public POTree(TreeModel newModel)
     {
         super(newModel);
-        addTreeSelectionListener(this);
+//        addTreeSelectionListener(this);
     }
 
     @Override
@@ -37,13 +33,32 @@ final class POTree<T> extends JTree implements TreeSelectionListener
             return value.toString();
         }
     }
-
+    
+    public List<T> getSelection()
+    {
+        ArrayList<T> _selection = new ArrayList<T>();
+        for (TreePath path : getSelectionPaths())
+        {
+            try
+            {
+                _selection.add((T) path.getLastPathComponent());
+            }
+            catch (ClassCastException ex)
+            {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
+        }
+        return _selection;
+    }
+    
+    /*
     @Override
     public void valueChanged(TreeSelectionEvent e)
     {
         for (TreePath path : e.getPaths())
         {
-            if (path.getLastPathComponent() instanceof KeywordTagDefinition)
+            try
             {
                 T keyword = (T) path.getLastPathComponent();
                 if (e.isAddedPath(path))
@@ -55,6 +70,11 @@ final class POTree<T> extends JTree implements TreeSelectionListener
                     _selection.remove(keyword);
                 }
             }
+            catch (ClassCastException ex)
+            {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
         }
         System.err.println("Selection: " + _selection.toString());
     }
@@ -63,4 +83,5 @@ final class POTree<T> extends JTree implements TreeSelectionListener
     {
         return _selection;
     }
+    */
 }

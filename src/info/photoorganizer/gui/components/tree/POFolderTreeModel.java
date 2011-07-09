@@ -8,16 +8,6 @@ import javax.swing.tree.TreePath;
 public class POFolderTreeModel extends POTreeModel
 {
     
-    private FilenameFilter _folderFilter = new FilenameFilter()
-    {
-        
-        @Override
-        public boolean accept(File dir, String name)
-        {
-            return (new File(dir, name)).isDirectory();
-        }
-    };
-
     private class Roots
     {
 
@@ -28,6 +18,16 @@ public class POFolderTreeModel extends POTreeModel
         }
         
     }
+
+    private FilenameFilter _folderFilter = new FilenameFilter()
+    {
+        
+        @Override
+        public boolean accept(File dir, String name)
+        {
+            return (new File(dir, name)).isDirectory();
+        }
+    };
 
     @Override
     public Object getChild(Object parent, int index)

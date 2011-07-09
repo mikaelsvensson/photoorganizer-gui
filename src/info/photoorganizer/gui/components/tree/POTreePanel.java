@@ -1,7 +1,5 @@
 package info.photoorganizer.gui.components.tree;
 
-import info.photoorganizer.metadata.KeywordTagDefinition;
-
 import java.awt.BorderLayout;
 import java.awt.dnd.DropTarget;
 import java.awt.event.FocusListener;
@@ -9,22 +7,18 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.swing.DropMode;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSelectionListener*/
+public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements TreeSelectionListener*/
 {
     
     /**
@@ -34,26 +28,24 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
 
     protected JScrollPane _scrollPane = null;
 
-    protected JTree _tree = null;
+    protected POTree<N> _tree = null;
 
-    public void setDragEnabled(boolean arg0)
+    public POTreePanel(T treeModel)
     {
-        _tree.setDragEnabled(arg0);
-    }
-
-    public final void setDropMode(DropMode arg0)
-    {
-        _tree.setDropMode(arg0);
-    }
-
-    public void setDropTarget(DropTarget dt)
-    {
-        _tree.setDropTarget(dt);
-    }
-
-    public void setTransferHandler(TransferHandler newHandler)
-    {
-        _tree.setTransferHandler(newHandler);
+        super();
+        //_selectedUUIDs = new ArrayList<UUID>();
+        
+        _tree = new POTree<N>(treeModel);
+        
+        //_tree.addTreeSelectionListener(this);
+        _tree.setModel(treeModel);
+        _tree.setDragEnabled(true);
+        _tree.setRootVisible(false);
+        
+        _scrollPane = new JScrollPane(_tree);
+        
+        setLayout(new BorderLayout());
+        add(_scrollPane, BorderLayout.CENTER);
     }
 
     public void addFocusListener(FocusListener l)
@@ -81,53 +73,11 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
         _tree.addMouseWheelListener(l);
     }
 
-    public void removeFocusListener(FocusListener l)
-    {
-        _tree.removeFocusListener(l);
-    }
-
-    public void removeKeyListener(KeyListener l)
-    {
-        _tree.removeKeyListener(l);
-    }
-
-    public void removeMouseListener(MouseListener l)
-    {
-        _tree.removeMouseListener(l);
-    }
-
-    public void removeMouseMotionListener(MouseMotionListener l)
-    {
-        _tree.removeMouseMotionListener(l);
-    }
-
-    public void removeMouseWheelListener(MouseWheelListener l)
-    {
-        _tree.removeMouseWheelListener(l);
-    }
-
-    public POTreePanel(T treeModel)
-    {
-        super();
-        //_selectedUUIDs = new ArrayList<UUID>();
-        
-        _tree = new POTree<T>(treeModel);
-        
-        //_tree.addTreeSelectionListener(this);
-        _tree.setModel(treeModel);
-        _tree.setDragEnabled(true);
-        _tree.setRootVisible(false);
-        
-        _scrollPane = new JScrollPane(_tree);
-        
-        setLayout(new BorderLayout());
-        add(_scrollPane, BorderLayout.CENTER);
-    }
-
     public void addTreeSelectionListener(TreeSelectionListener tsl)
     {
         _tree.addTreeSelectionListener(tsl);
     }
+
     public void clearSelection()
     {
         _tree.clearSelection();
@@ -137,11 +87,11 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
     {
         return _tree.getLastSelectedPathComponent();
     }
-    
-//    public List<UUID> getSelection()
-//    {
-//        return (List<UUID>) _selectedUUIDs.clone();
-//    }
+
+    public List<N> getSelection()
+    {
+        return _tree.getSelection();
+    }
 
     public TreeSelectionModel getSelectionModel()
     {
@@ -158,12 +108,6 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
         return _tree.getSelectionPaths();
     }
 
-//    @Override
-//    public void setModel(T newModel)
-//    {
-//        super.setModel(newModel);
-//    }
-
     public T getTreeModel()
     {
         return (T) _tree.getModel();
@@ -174,9 +118,59 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
         _tree.makeVisible(path);
     }
 
+    public void removeFocusListener(FocusListener l)
+    {
+        _tree.removeFocusListener(l);
+    }
+
+    public void removeKeyListener(KeyListener l)
+    {
+        _tree.removeKeyListener(l);
+    }
+    public void removeMouseListener(MouseListener l)
+    {
+        _tree.removeMouseListener(l);
+    }
+
+    public void removeMouseMotionListener(MouseMotionListener l)
+    {
+        _tree.removeMouseMotionListener(l);
+    }
+    
+//    public List<UUID> getSelection()
+//    {
+//        return (List<UUID>) _selectedUUIDs.clone();
+//    }
+
+    public void removeMouseWheelListener(MouseWheelListener l)
+    {
+        _tree.removeMouseWheelListener(l);
+    }
+
     public void removeTreeSelectionListener(TreeSelectionListener tsl)
     {
         _tree.removeTreeSelectionListener(tsl);
+    }
+
+    public void setDragEnabled(boolean arg0)
+    {
+        _tree.setDragEnabled(arg0);
+    }
+
+//    @Override
+//    public void setModel(T newModel)
+//    {
+//        super.setModel(newModel);
+//    }
+
+    public final void setDropMode(DropMode arg0)
+    {
+        _tree.setDropMode(arg0);
+    }
+
+    public void setDropTarget(DropTarget dt)
+    {
+        _tree.setDropTarget(dt);
     }
 
     public void setEditable(boolean flag)
@@ -192,6 +186,11 @@ public class POTreePanel<T extends TreeModel> extends JPanel /*implements TreeSe
     public void setSelectionPaths(TreePath[] paths)
     {
         _tree.setSelectionPaths(paths);
+    }
+
+    public void setTransferHandler(TransferHandler newHandler)
+    {
+        _tree.setTransferHandler(newHandler);
     }
 
 //    @Override

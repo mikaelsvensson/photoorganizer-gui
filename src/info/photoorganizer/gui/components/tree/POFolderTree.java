@@ -1,11 +1,12 @@
 package info.photoorganizer.gui.components.tree;
 
 import java.awt.Component;
+import java.io.File;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-public class POFolderTree extends POTreePanel<POFolderTreeModel>
+public class POFolderTree extends POTreePanel<POFolderTreeModel, File>
 {
     
     private class FolderIconRenderer extends DefaultTreeCellRenderer
@@ -28,20 +29,20 @@ public class POFolderTree extends POTreePanel<POFolderTreeModel>
         
     }
 
-    public POFolderTree(POFolderTreeModel treeModel)
-    {
-        super(treeModel);
-        _tree.setCellRenderer(new FolderIconRenderer());
-    }
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     
     public POFolderTree()
     {
         this(new POFolderTreeModel());
     }
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+    public POFolderTree(POFolderTreeModel treeModel)
+    {
+        super(treeModel);
+        _tree.setCellRenderer(new FolderIconRenderer());
+    }
 
 }

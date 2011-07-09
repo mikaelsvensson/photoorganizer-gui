@@ -1,6 +1,8 @@
 package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.Database;
+import info.photoorganizer.metadata.KeywordTagDefinition;
+import info.photoorganizer.util.StringUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,12 +11,10 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
 
-public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
+public class POKeywordTree extends POTreePanel<POKeywordTreeModel, KeywordTagDefinition>
 {
     /**
      * 
@@ -35,6 +35,12 @@ public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
         }
     };
 
+    public POKeywordTree(Database database)
+    {
+        super(new POKeywordTreeModel(database));
+        init();
+    }
+
     public JPopupMenu getPopupMenu()
     {
         if (null == _popupMenu)
@@ -47,24 +53,24 @@ public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
         return _popupMenu;
     }
 
-    public POKeywordTree(Database database)
-    {
-        super(new POKeywordTreeModel(database));
-        init();
-    }
-
     private void init()
     {
         addMouseListener(new MouseListener()
         {
             
             @Override
-            public void mouseReleased(MouseEvent e)
+            public void mouseClicked(MouseEvent e)
             {
-                if (e.isPopupTrigger())
-                {
-                    getPopupMenu().show(POKeywordTree.this, e.getX(), e.getY());
-                }
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
             }
             
             @Override
@@ -77,18 +83,12 @@ public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
             }
             
             @Override
-            public void mouseExited(MouseEvent e)
+            public void mouseReleased(MouseEvent e)
             {
-            }
-            
-            @Override
-            public void mouseEntered(MouseEvent e)
-            {
-            }
-            
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
+                if (e.isPopupTrigger())
+                {
+                    getPopupMenu().show(POKeywordTree.this, e.getX(), e.getY());
+                }
             }
         });
         addTreeSelectionListener(new TreeSelectionListener()
@@ -104,12 +104,8 @@ public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
     
     private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)
     {
-        TreePath selectedPath = _tree.getSelectionPath();
-        boolean isSelected = null != selectedPath;
-        
-        if (isSelected)
+        for (KeywordTagDefinition keyword : getSelection())
         {
-//            System.out.println("Synonyms: " + StringUtils.join(((KeywordTagDefinition)selectedPath.getLastPathComponent()).getSynonyms(), String.valueOf(KEYWORD_SEPARATION_CHARACTER), true, KEYWORD_QUOTATION_CHARACTER));
+            System.out.println("Synonyms for " + keyword.getName() + ": " + StringUtils.join(keyword.getSynonyms(), String.valueOf(KeywordTagDefinition.DEFAULT_KEYWORD_SEPARATOR), true, KeywordTagDefinition.DEFAULT_KEYWORD_QUOTATION_MARK));
         }
-        
     }}
