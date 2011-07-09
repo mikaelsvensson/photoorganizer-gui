@@ -160,10 +160,18 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     
     public static List<ListItem> getFolderList(String path)
     {
+        return getFolderList(new File(path));
+    }
+    
+    public static List<ListItem> getFolderList(File folder)
+    {
         List<ListItem> items = new ArrayList<ListItem>();
-        for (File f : (new File(path)).listFiles())
+        if (folder.isDirectory())
         {
-            items.add(new DemoListItem(f));
+            for (File f : folder.listFiles())
+            {
+                items.add(new DemoListItem(f));
+            }
         }
         return items;
     }
@@ -172,8 +180,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         POThumbList thumbList = new POThumbList();
         
-        List<ListItem> items = thumbList.getFolderList("F:\\Fotografier\\Personer\\Sonja");
-        thumbList.setItems(items);
+        thumbList.setItems(new File("F:\\Fotografier\\Personer\\Sonja"));
         
         JPanel p = new JPanel();
         JScrollPane scrollPane = new JScrollPane(thumbList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -335,11 +342,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             {
                 Rectangle repaintArea = new Rectangle();
                 
-                boolean extendSelection = e.isControlDown();
+                boolean extendSelection = e.isShiftDown() || e.isControlDown();
                 if (!extendSelection)
                 {
                     deselectItems(getSelectedItems());
                 }
+                GuiItem currentItem = getGuiItemAtPoint(e.getPoint());
                 if (null != _mouseSelectionArea)
                 {
                     repaintArea.add(_mouseSelectionArea);
@@ -348,30 +356,41 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                     {
                         if (item instanceof ListItemGuiItem)
                         {
-                            ((ListItemGuiItem)item).isSelected = true;
+                            ListItemGuiItem listItemGuiItem = (ListItemGuiItem)item;
+                            if (e.isControlDown())
+                            {
+                                listItemGuiItem.isSelected = !listItemGuiItem.isSelected;
+                            }
+                            else
+                            {
+                                listItemGuiItem.isSelected = true;
+                            }
                         }
                         repaintArea.add(item.area);
+                    }
+                    if (currentItem != null)
+                    {
+                        setFocusedGuiItem(currentItem);
                     }
                 }
                 else
                 {
-                    GuiItem item = getGuiItemAtPoint(e.getPoint());
-                    if (item != null)
+                    if (currentItem != null)
                     {
-                        if (item instanceof ListItemGuiItem)
+                        if (currentItem instanceof ListItemGuiItem)
                         {
-                            onListItemClick((ListItemGuiItem) item, repaintArea, e);
+                            onListItemClick((ListItemGuiItem) currentItem, repaintArea, e);
                         }
-                        else if (item instanceof ListItemGroupGuiItem)
+                        else if (currentItem instanceof ListItemGroupGuiItem)
                         {
-                            onListItemGroupClick((ListItemGroupGuiItem) item, repaintArea, e);
+                            onListItemGroupClick((ListItemGroupGuiItem) currentItem, repaintArea, e);
                         }
 
                         if (null != _focusedGuiItem)
                         {
                             repaintArea.add(_focusedGuiItem.area);
                         }
-                        setFocusedGuiItem(item);
+                        setFocusedGuiItem(currentItem);
                     }
                 }
                 
@@ -906,6 +925,11 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
         
         regroup(_grouper);
+    }
+    
+    public void setItems(File folder)
+    {
+        setItems(getFolderList(folder));
     }
     
     private void setItemsSelectionStatus(List<ListItem> items, boolean selected)
