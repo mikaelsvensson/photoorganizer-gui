@@ -1,7 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ImageGrouper
 {

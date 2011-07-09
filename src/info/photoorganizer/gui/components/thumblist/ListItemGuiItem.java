@@ -21,7 +21,7 @@ class ListItemGuiItem extends GuiItem
     @Override
     public void paintImpl(Graphics2D g)
     {
-        _painter.paint(item, isSelected, g);
+        _painter.paint(item, isSelected, area.getSize(), g);
     }
 
     @Override

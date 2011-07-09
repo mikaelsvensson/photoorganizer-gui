@@ -35,22 +35,25 @@ public class FileNameGrouper implements ImageGrouper
     {
         SortedMap<String, List<ListItem>> groups = new TreeMap<String, List<ListItem>>();
         
-        for (ListItem item : items)
+        if (items != null)
         {
-            String groupName = String.valueOf(item.getFile().getName().charAt(0));
-            List<ListItem> groupItems = null;
-            if (groups.containsKey(groupName))
+            for (ListItem item : items)
             {
-                groupItems = groups.get(groupName);
+                String groupName = String.valueOf(item.getFile().getName().toUpperCase().charAt(0));
+                List<ListItem> groupItems = null;
+                if (groups.containsKey(groupName))
+                {
+                    groupItems = groups.get(groupName);
+                }
+                else
+                {
+                    groupItems = new ArrayList<ListItem>();
+                    groups.put(groupName, groupItems);
+                }
+                groupItems.add(item);
             }
-            else
-            {
-                groupItems = new ArrayList<ListItem>();
-                groups.put(groupName, groupItems);
-            }
-            groupItems.add(item);
+            
         }
-        
         List<ImageGroup> res = new ArrayList<ImageGroup>();
         for (Entry<String, List<ListItem>> entry : groups.entrySet())
         {

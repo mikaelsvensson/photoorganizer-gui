@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 
 public interface ListItemPainter
@@ -13,5 +14,17 @@ public interface ListItemPainter
      */
     double getWidthToHeightRatio(long area);
 
-    void paint(ListItem item, boolean isSelected, Graphics2D g);
+    /**
+     * @param item
+     *            the list item to paint.
+     * @param isSelected
+     * @param itemSize
+     *            the area (width and height) that the list item is supposed to
+     *            occupy on screen.
+     * @param g
+     *            the graphics object to use for painting. The clipping area
+     *            will be smaller than {@code itemSize} if only a part of the
+     *            list item is visible.
+     */
+    void paint(ListItem item, boolean isSelected, Dimension itemSize, Graphics2D g);
 }

@@ -34,13 +34,19 @@ public abstract class GuiItem
     
     public void paint(Graphics2D g)
     {
-        //System.err.println("Painting " + this.getClass().getSimpleName() + " with clip area " + area.toString());
-        
         Shape oldClip = g.getClip();
-        
-        g.setClip(area);
-        g.translate(area.x, area.y);
 
+        /*
+         * Set clip area so that gui item paint can only paint in the screen
+         * area which is the intersection of the total area to repaint and the
+         * area which the list item occupies (this is important when only a part
+         * of the list item is supposed to be visible due to viewport scrolling
+         * -- the gui item painter must be prevented from painting the part of
+         * the gui item which should be hidden).
+         */
+        g.setClip(g.getClipBounds().intersection(area));
+        g.translate(area.x, area.y);
+        
         paintImpl(g);
         
         g.translate(-area.x, -area.y);
