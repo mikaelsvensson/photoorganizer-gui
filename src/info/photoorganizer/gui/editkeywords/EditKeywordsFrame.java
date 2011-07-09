@@ -4,8 +4,8 @@ import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
-import info.photoorganizer.gui.components.tree.POTree;
-import info.photoorganizer.gui.components.tree.POTreeModel;
+import info.photoorganizer.gui.components.tree.POTreePanel;
+import info.photoorganizer.gui.components.tree.POKeywordTreeModel;
 import info.photoorganizer.gui.editkeyword.EditKeywordFrame;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
@@ -127,7 +127,7 @@ public class EditKeywordsFrame extends PODialog
 
     };
     
-    private POTree _keywordsTree = null;
+    private POTreePanel _keywordsTree = null;
     
     private JButton _okButton = null;
     private POActionListener _okButtonActionListener = new POActionListener()
@@ -210,15 +210,15 @@ public class EditKeywordsFrame extends PODialog
         return _removeButton;
     }
     
-    private POTree getKeywordsTree()
+    private POTreePanel getKeywordsTree()
     {
         if (null == _keywordsTree)
         {
             Database database = getDatabase();
             
-            _keywordsTree = new POTree(new POTreeModel(database.getRootKeyword()));
+            _keywordsTree = new POTreePanel(new POKeywordTreeModel(database.getRootKeyword()));
             _keywordsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            _keywordsTree.setRootVisible(false);
+            //_keywordsTree.setRootVisible(false);
             _keywordsTree.setEditable(true);
             _keywordsTree.addTreeSelectionListener(new TreeSelectionListener()
             {
@@ -328,8 +328,8 @@ public class EditKeywordsFrame extends PODialog
             RemoveKeywordCommand cmd = new RemoveKeywordCommand(keyword);
             CommandManager.getInstance().doAction(cmd);
             
-            POTree keywordsTree = getKeywordsTree();
-            if (cmd.getParentBeforeRemoval() != null && cmd.getParentBeforeRemoval() != keywordsTree.getModel().getRoot())
+            POTreePanel keywordsTree = getKeywordsTree();
+            if (cmd.getParentBeforeRemoval() != null && cmd.getParentBeforeRemoval() != keywordsTree.getTreeModel().getRoot())
             {
                 keywordsTree.setSelectionPath(new TreePath(cmd.getParentBeforeRemoval().getPath()));
             }
@@ -352,7 +352,7 @@ public class EditKeywordsFrame extends PODialog
 
     protected void onAddButton_actionPerformed(ActionEvent e)
     {
-        POTree keywordsTree = getKeywordsTree();
+        POTreePanel keywordsTree = getKeywordsTree();
         KeywordTagDefinition keyword = getSelectedKeyword();
         
         String newName = JOptionPane.showInputDialog(this, I18n.getInstance().getString(getClass(), "ADD_KEYWORD_NEW_NAME_TEXT"), I18n.getInstance().getString(getClass(), "ADD_KEYWORD_NEW_NAME_HEADER"), JOptionPane.QUESTION_MESSAGE);

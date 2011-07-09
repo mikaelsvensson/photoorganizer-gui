@@ -2,9 +2,9 @@ package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
@@ -12,42 +12,30 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-public class POTree extends JTree implements TreeSelectionListener
+final class POTree<T> extends JTree implements TreeSelectionListener
 {
-
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     
-    private ArrayList<UUID> _selectedUUIDs = null;
+    private ArrayList<T> _selection = new ArrayList<T>();
 
-    public List<UUID> getSelection()
+    public POTree(TreeModel newModel)
     {
-        return (List<UUID>) _selectedUUIDs.clone();
-    }
-
-    public POTree(POTreeModel treeModel)
-    {
-        super();
-        _selectedUUIDs = new ArrayList<UUID>();
+        super(newModel);
         addTreeSelectionListener(this);
-        setModel(treeModel);
-        setDragEnabled(true);
-        setRootVisible(false);
-        setTransferHandler(new POTreeTransferHandler(this));
     }
 
     @Override
-    public POTreeModel getModel()
+    public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus)
     {
-        return (POTreeModel) super.getModel();
-    }
-
-    @Override
-    public void setModel(TreeModel newModel)
-    {
-        super.setModel(newModel);
+        if (value instanceof File)
+        {
+            File fileSystemItem = (File)value;
+            return fileSystemItem.getName().length() > 0 ? fileSystemItem.getName() : fileSystemItem.getPath();
+        }
+        else
+        {
+            return value.toString();
+        }
     }
 
     @Override
@@ -57,18 +45,22 @@ public class POTree extends JTree implements TreeSelectionListener
         {
             if (path.getLastPathComponent() instanceof KeywordTagDefinition)
             {
-                KeywordTagDefinition keyword = (KeywordTagDefinition) path.getLastPathComponent();
+                T keyword = (T) path.getLastPathComponent();
                 if (e.isAddedPath(path))
                 {
-                    _selectedUUIDs.add(keyword.getId());
+                    _selection.add(keyword);
                 }
                 else
                 {
-                    _selectedUUIDs.remove(keyword.getId());
+                    _selection.remove(keyword);
                 }
             }
         }
-        System.err.println("Selected UUIDs: " + _selectedUUIDs.toString());
+        System.err.println("Selection: " + _selection.toString());
     }
-    
+
+    public List<T> getSelection()
+    {
+        return _selection;
+    }
 }

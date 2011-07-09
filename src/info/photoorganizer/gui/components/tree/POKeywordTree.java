@@ -1,36 +1,27 @@
 package info.photoorganizer.gui.components.tree;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
+import info.photoorganizer.database.Database;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.IOException;
 
-import info.photoorganizer.database.Database;
-
-import javax.swing.DropMode;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.TransferHandler;
-import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
-public class POKeywordTree extends JScrollPane
+public class POKeywordTree extends POTreePanel<POKeywordTreeModel>
 {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-    private POTree _keywordsTree = null;
+//    private POTree<POKeywordTreeModel> _keywordsTree = null;
     
     private JPopupMenu _popupMenu = null;
     
@@ -56,35 +47,15 @@ public class POKeywordTree extends JScrollPane
         return _popupMenu;
     }
 
-    Database _database = null;
-    
     public POKeywordTree(Database database)
     {
-        super();
-        _database = database;
-        setViewportView(getKeywordsTree());
+        super(new POKeywordTreeModel(database));
+        init();
     }
 
-    public POKeywordTree(Database database, int vsbPolicy, int hsbPolicy)
+    private void init()
     {
-        super(vsbPolicy, hsbPolicy);
-        _database = database;
-        setViewportView(getKeywordsTree());
-    }
-
-    private POTree getKeywordsTree()
-    {
-        if (null == _keywordsTree)
-        {
-            initKeywordsTree();
-        }
-        return _keywordsTree;
-    }
-
-    private void initKeywordsTree()
-    {
-        _keywordsTree = new POTree(new POTreeModel(_database.getRootKeyword()));
-        _keywordsTree.addMouseListener(new MouseListener()
+        addMouseListener(new MouseListener()
         {
             
             @Override
@@ -120,7 +91,7 @@ public class POKeywordTree extends JScrollPane
             {
             }
         });
-        _keywordsTree.addTreeSelectionListener(new TreeSelectionListener()
+        addTreeSelectionListener(new TreeSelectionListener()
         {
             @Override
             public void valueChanged(TreeSelectionEvent e)
@@ -128,11 +99,12 @@ public class POKeywordTree extends JScrollPane
                 onKeywordsTree_TreeSelection_valueChanged(e);
             }
         });
+        setTransferHandler(new POKeywordTreeTransferHandler(this));
     }
     
     private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)
     {
-        TreePath selectedPath = getKeywordsTree().getSelectionPath();
+        TreePath selectedPath = _tree.getSelectionPath();
         boolean isSelected = null != selectedPath;
         
         if (isSelected)

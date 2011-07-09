@@ -1,44 +1,43 @@
 package info.photoorganizer.gui.components.tree;
 
+import info.photoorganizer.metadata.KeywordTagDefinition;
+
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class POTagDefinitionUUIDList implements Transferable, Serializable
+public class POTransferableUUIDList implements Transferable, Serializable
 {
-    public static final DataFlavor TAG_DEFINITION_UUID_LIST_DATAFLAVOR = new DataFlavor(POTagDefinitionUUIDList.class, "UUID List");
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static final DataFlavor TAG_DEFINITION_UUID_LIST_DATAFLAVOR = new DataFlavor(POTransferableUUIDList.class, "UUID List");
     
     private static final DataFlavor[] FLAVORS = { TAG_DEFINITION_UUID_LIST_DATAFLAVOR };
     
     private List<UUID> _UUIDs = null;
 
-    public POTagDefinitionUUIDList(List<UUID> uuids)
+    public POTransferableUUIDList(List<KeywordTagDefinition> selection)
     {
+        List<UUID> uuids = new ArrayList<UUID>();
+        for (KeywordTagDefinition keyword : selection)
+        {
+            uuids.add(keyword.getId());
+        }
         _UUIDs = uuids;
-        System.err.println("POTagDefinitionUUIDList with UUIDs " + _UUIDs.toString());
     }
 
     public List<UUID> getUUIDs()
     {
         return _UUIDs;
     }
-    
-//    public List<KeywordTagDefinition> getKeywords()
-//    {
-//        List<KeywordTagDefinition> res = new ArrayList<KeywordTagDefinition>();
-//        for (TreePath path : _paths)
-//        {
-//            if (path.getLastPathComponent() instanceof KeywordTagDefinition)
-//            {
-//                res.add((KeywordTagDefinition) path.getLastPathComponent());
-//            }
-//        }
-//        return res;
-//    }
 
     @Override
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException

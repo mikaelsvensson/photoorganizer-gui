@@ -4,6 +4,7 @@ import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
+import info.photoorganizer.gui.components.tree.POFolderTree;
 import info.photoorganizer.gui.components.tree.POKeywordTree;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.metadata.KeywordTagDefinition;
@@ -20,8 +21,10 @@ public class POViewPanelTest2 extends PODialog
     {
         super("TITLE", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
 
+        POFolderTree folderTree = new POFolderTree();
+        
         POViewPaneInfo labelAlbert = new POViewPaneInfo(createLabel("Albert"), "A");
-        POViewPaneInfo labelBertha = new POViewPaneInfo(createLabel("Bertha"), "B");
+        POViewPaneInfo treeFolders = new POViewPaneInfo(folderTree, "Folders");
         POViewPaneInfo labelCeasar = new POViewPaneInfo(createLabel("Ceasar"), "C");
         POViewPaneInfo treeKeywords = new POViewPaneInfo(new POKeywordTree(getDatabase()), "Keywords");
         final POTagField<KeywordTagDefinition> tagField = createTagField(new KeywordTagDefinition[] {}, 20);
@@ -69,8 +72,8 @@ public class POViewPanelTest2 extends PODialog
         view.split(null, false);
         view.split(new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND }, true);
         
+        view.add(treeFolders, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
         view.add(labelAlbert, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(labelBertha, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
         view.add(keywordsField, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
         view.add(treeKeywords, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
         

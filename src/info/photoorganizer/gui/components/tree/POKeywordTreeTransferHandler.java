@@ -19,7 +19,7 @@ import javax.swing.tree.TreePath;
  * @author Mikael
  * @see http://www.javaprogrammingforums.com/java-code-snippets-tutorials/3141-drag-drop-jtrees.html
  */
-public class POTreeTransferHandler extends TransferHandler
+public class POKeywordTreeTransferHandler extends TransferHandler
 {
     
     /**
@@ -27,19 +27,19 @@ public class POTreeTransferHandler extends TransferHandler
      */
     private static final long serialVersionUID = 1L;
     
-    private POTreeModel _tree = null;
+    private POKeywordTreeModel _tree = null;
 
-    public POTreeTransferHandler(POTree poTree)
+    public POKeywordTreeTransferHandler(POTreePanel<POKeywordTreeModel> poTree)
     {
         super();
-        _tree = poTree.getModel();
+        _tree = poTree.getTreeModel();
     }
 
     @Override
     public boolean canImport(TransferSupport support)
     {
         support.setShowDropLocation(true);
-        if (support.isDataFlavorSupported(POTagDefinitionUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR))
+        if (support.isDataFlavorSupported(POTransferableUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR))
         {
             TreePath dropPath = ((JTree.DropLocation)support.getDropLocation()).getPath();
             if (dropPath != null && dropPath.getLastPathComponent() instanceof KeywordTagDefinition)
@@ -47,7 +47,7 @@ public class POTreeTransferHandler extends TransferHandler
                 KeywordTagDefinition target = (KeywordTagDefinition) dropPath.getLastPathComponent();
                 try
                 {
-                    List<UUID> uuids = ((POTagDefinitionUUIDList)support.getTransferable().getTransferData(POTagDefinitionUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
+                    List<UUID> uuids = ((POTransferableUUIDList)support.getTransferable().getTransferData(POTransferableUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
                     for (UUID uuid : uuids)
                     {
                     }
@@ -79,9 +79,9 @@ public class POTreeTransferHandler extends TransferHandler
     {
         if (c instanceof POTree)
         {
-            List<UUID> selection = ((POTree)c).getSelection();
+            List<KeywordTagDefinition> selection = ((POTree)c).getSelection();
             System.err.println("createTransferable using this selection: " + selection.toString());
-            return new POTagDefinitionUUIDList(selection);
+            return new POTransferableUUIDList(selection);
         }
         else
         {
@@ -96,7 +96,7 @@ public class POTreeTransferHandler extends TransferHandler
         {
             try
             {
-                List<UUID> uuids = ((POTagDefinitionUUIDList)data.getTransferData(POTagDefinitionUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
+                List<UUID> uuids = ((POTransferableUUIDList)data.getTransferData(POTransferableUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
                 for (UUID uuid : uuids)
                 {
                     // Remove keyword (path)
@@ -130,7 +130,7 @@ public class POTreeTransferHandler extends TransferHandler
             try
             {
                 Transferable transferable = support.getTransferable();
-                List<UUID> uuids = ((POTagDefinitionUUIDList)transferable.getTransferData(POTagDefinitionUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
+                List<UUID> uuids = ((POTransferableUUIDList)transferable.getTransferData(POTransferableUUIDList.TAG_DEFINITION_UUID_LIST_DATAFLAVOR)).getUUIDs();
                 TreePath dropPath = ((JTree.DropLocation)support.getDropLocation()).getPath();
                 KeywordTagDefinition target = null;
                 if (null != dropPath && dropPath.getLastPathComponent() instanceof KeywordTagDefinition)
