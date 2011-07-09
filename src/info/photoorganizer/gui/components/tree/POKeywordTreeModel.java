@@ -5,12 +5,7 @@ import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.metadata.KeywordTagDefinitionEvent;
 import info.photoorganizer.metadata.KeywordTagDefinitionEventListener;
 import info.photoorganizer.metadata.TagDefinitionEvent;
-import info.photoorganizer.util.Event;
-import info.photoorganizer.util.Event.EventExecuter;
 
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 public class POKeywordTreeModel extends POTreeModel implements KeywordTagDefinitionEventListener

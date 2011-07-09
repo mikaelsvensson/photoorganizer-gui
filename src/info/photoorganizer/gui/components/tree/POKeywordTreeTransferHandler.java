@@ -6,7 +6,6 @@ import info.photoorganizer.metadata.KeywordTagDefinition;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 

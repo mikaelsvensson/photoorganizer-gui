@@ -13,11 +13,16 @@ import javax.swing.DropMode;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.TransferHandler;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+/**
+ * @author Mikael
+ *
+ * @param <T>
+ * @param <N> the type of object used to represent tree nodes
+ */
 public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements TreeSelectionListener*/
 {
     
@@ -29,6 +34,16 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
     protected JScrollPane _scrollPane = null;
 
     protected POTree<N> _tree = null;
+
+    public void addSelectionListener(POTreeSelectionListener<N> listener)
+    {
+        _tree.addSelectionListener(listener);
+    }
+
+    public void removeSelectionListener(POTreeSelectionListener<N> listener)
+    {
+        _tree.removeSelectionListener(listener);
+    }
 
     public POTreePanel(T treeModel)
     {
@@ -71,11 +86,6 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
     public void addMouseWheelListener(MouseWheelListener l)
     {
         _tree.addMouseWheelListener(l);
-    }
-
-    public void addTreeSelectionListener(TreeSelectionListener tsl)
-    {
-        _tree.addTreeSelectionListener(tsl);
     }
 
     public void clearSelection()
@@ -145,11 +155,6 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
     public void removeMouseWheelListener(MouseWheelListener l)
     {
         _tree.removeMouseWheelListener(l);
-    }
-
-    public void removeTreeSelectionListener(TreeSelectionListener tsl)
-    {
-        _tree.removeTreeSelectionListener(tsl);
     }
 
     public void setDragEnabled(boolean arg0)

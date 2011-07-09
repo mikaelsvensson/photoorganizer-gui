@@ -2,7 +2,6 @@ package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.metadata.KeywordTagDefinition;
-import info.photoorganizer.util.StringUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,8 +10,6 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 
 public class POKeywordTree extends POTreePanel<POKeywordTreeModel, KeywordTagDefinition>
 {
@@ -91,21 +88,22 @@ public class POKeywordTree extends POTreePanel<POKeywordTreeModel, KeywordTagDef
                 }
             }
         });
-        addTreeSelectionListener(new TreeSelectionListener()
-        {
-            @Override
-            public void valueChanged(TreeSelectionEvent e)
-            {
-                onKeywordsTree_TreeSelection_valueChanged(e);
-            }
-        });
+//        addTreeSelectionListener(new TreeSelectionListener()
+//        {
+//            @Override
+//            public void valueChanged(TreeSelectionEvent e)
+//            {
+//                onKeywordsTree_TreeSelection_valueChanged(e);
+//            }
+//        });
         setTransferHandler(new POKeywordTreeTransferHandler(this));
     }
     
-    private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)
-    {
-        for (KeywordTagDefinition keyword : getSelection())
-        {
-            System.out.println("Synonyms for " + keyword.getName() + ": " + StringUtils.join(keyword.getSynonyms(), String.valueOf(KeywordTagDefinition.DEFAULT_KEYWORD_SEPARATOR), true, KeywordTagDefinition.DEFAULT_KEYWORD_QUOTATION_MARK));
-        }
-    }}
+//    private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)
+//    {
+//        for (KeywordTagDefinition keyword : getSelection())
+//        {
+//            System.out.println("Synonyms for " + keyword.getName() + ": " + StringUtils.join(keyword.getSynonyms(), String.valueOf(KeywordTagDefinition.DEFAULT_KEYWORD_SEPARATOR), true, KeywordTagDefinition.DEFAULT_KEYWORD_QUOTATION_MARK));
+//        }
+//    }
+}

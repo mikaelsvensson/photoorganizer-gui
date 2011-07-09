@@ -1,15 +1,45 @@
 package info.photoorganizer.gui.components.tree;
 
+import info.photoorganizer.util.Event;
+import info.photoorganizer.util.Event.EventExecuter;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-final class POTree<T> extends JTree /*implements TreeSelectionListener*/
+/**
+ * @author Mikael
+ *
+ * @param <T> the type of object used to represent tree nodes
+ */
+class POTree<T> extends JTree implements TreeSelectionListener
 {
+    private Event<POTreeSelectionListener<T>, POTreeSelectionEvent<T>> _selectionEvent = new Event<POTreeSelectionListener<T>, POTreeSelectionEvent<T>>(
+            new EventExecuter<POTreeSelectionListener<T>, POTreeSelectionEvent<T>>()
+            {
+                @Override
+                public void fire(POTreeSelectionListener<T> listener, POTreeSelectionEvent<T> event)
+                {
+                    listener.selectionChanged(event);
+                }
+            });
+    
+    public void addSelectionListener(POTreeSelectionListener<T> listener)
+    {
+        _selectionEvent.addListener(listener);
+    }
+    
+    public void removeSelectionListener(POTreeSelectionListener<T> listener)
+    {
+        _selectionEvent.removeListener(listener);
+    }
+    
     private static final long serialVersionUID = 1L;
     
 //    private ArrayList<T> _selection = new ArrayList<T>();
@@ -17,7 +47,7 @@ final class POTree<T> extends JTree /*implements TreeSelectionListener*/
     public POTree(TreeModel newModel)
     {
         super(newModel);
-//        addTreeSelectionListener(this);
+        addTreeSelectionListener(this);
     }
 
     @Override
@@ -37,51 +67,49 @@ final class POTree<T> extends JTree /*implements TreeSelectionListener*/
     public List<T> getSelection()
     {
         ArrayList<T> _selection = new ArrayList<T>();
-        for (TreePath path : getSelectionPaths())
+        TreePath[] selectionPaths = getSelectionPaths();
+        if (null != selectionPaths)
         {
-            try
+            for (TreePath path : selectionPaths)
             {
-                _selection.add((T) path.getLastPathComponent());
-            }
-            catch (ClassCastException ex)
-            {
-                // TODO Auto-generated catch block
-                ex.printStackTrace();
+                try
+                {
+                    _selection.add((T) path.getLastPathComponent());
+                }
+                catch (ClassCastException ex)
+                {
+                    // TODO Auto-generated catch block
+                    ex.printStackTrace();
+                }
             }
         }
         return _selection;
     }
     
-    /*
     @Override
     public void valueChanged(TreeSelectionEvent e)
     {
-        for (TreePath path : e.getPaths())
-        {
-            try
-            {
-                T keyword = (T) path.getLastPathComponent();
-                if (e.isAddedPath(path))
-                {
-                    _selection.add(keyword);
-                }
-                else
-                {
-                    _selection.remove(keyword);
-                }
-            }
-            catch (ClassCastException ex)
-            {
-                // TODO Auto-generated catch block
-                ex.printStackTrace();
-            }
-        }
-        System.err.println("Selection: " + _selection.toString());
+//        for (TreePath path : e.getPaths())
+//        {
+//            try
+//            {
+//                T keyword = (T) path.getLastPathComponent();
+//                if (e.isAddedPath(path))
+//                {
+//                    _selection.add(keyword);
+//                }
+//                else
+//                {
+//                    _selection.remove(keyword);
+//                }
+//            }
+//            catch (ClassCastException ex)
+//            {
+//                // TODO Auto-generated catch block
+//                ex.printStackTrace();
+//            }
+//        }
+//        System.err.println("Selection: " + _selection.toString());
+        _selectionEvent.fire(new POTreeSelectionEvent<T>(this, getSelection()));
     }
-
-    public List<T> getSelection()
-    {
-        return _selection;
-    }
-    */
 }

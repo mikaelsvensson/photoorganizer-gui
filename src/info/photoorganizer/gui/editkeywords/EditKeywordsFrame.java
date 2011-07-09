@@ -220,14 +220,14 @@ public class EditKeywordsFrame extends PODialog
             _keywordsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
             //_keywordsTree.setRootVisible(false);
             _keywordsTree.setEditable(true);
-            _keywordsTree.addTreeSelectionListener(new TreeSelectionListener()
-            {
-                @Override
-                public void valueChanged(TreeSelectionEvent e)
-                {
-                    onKeywordsTree_TreeSelection_valueChanged(e);
-                }
-            });
+//            _keywordsTree.addTreeSelectionListener(new TreeSelectionListener()
+//            {
+//                @Override
+//                public void valueChanged(TreeSelectionEvent e)
+//                {
+//                    onKeywordsTree_TreeSelection_valueChanged(e);
+//                }
+//            });
             
         }
         return _keywordsTree;
@@ -287,7 +287,7 @@ public class EditKeywordsFrame extends PODialog
         PODialog.show(new EditKeywordFrame(this, keyword));
     }
     
-    private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)
+    private void onKeywordsTree_TreeSelection_valueChanged()
     {
         TreePath selectedPath = getKeywordsTree().getSelectionPath();
         boolean isSelected = null != selectedPath;
