@@ -691,16 +691,15 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return _items.iterator();
     }
 
-    private static int paintCounter = 0;
     @Override
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g); // Paint background
         
-        System.err.println("------------------ Paint " + paintCounter++
-                + " affects " + g.getClipBounds() 
-                + " width=" + getWidth()
-                + " preferred width=" + getPreferredSize().width);
+//        System.err.println("------------------ Paint " + paintCounter++
+//                + " affects " + g.getClipBounds() 
+//                + " width=" + getWidth()
+//                + " preferred width=" + getPreferredSize().width);
         
         if (_firstPaint)
         {
@@ -709,20 +708,14 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             _firstPaint = false;
         }
         
-//        int w = 0;
-//        Container parent = getParent();
-//        if (parent instanceof JViewport)
-//        {
-//            w = ((JViewport)parent).getVisibleRect().width;
-//        }
-//        else
-//        {
-//            w = getVisibleRect().width;
-//        }
         if (getWidth() != getPreferredSize().width)
         {
-            // Component has been resized. Recalculate whatever needs to be recalculated.
-            System.err.println("Width has changed!");
+            // Component does not have its intended width, and this usually
+            // happens when calls to relayout() causes the vertical scrollbar to
+            // become visible, effectively decreasing the component's width. It
+            // is therefore necessary to call relayout() once more to account
+            // for the width change.
+            
             relayout();
         }
         
@@ -769,14 +762,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 guiItem.paint(g);
             }
         }
-//        for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
-//        {
-//            entry.getKey().paint(g);
-//            for (ListItemGuiItem item : entry.getValue())
-//            {
-//                item.paint(g);
-//            }
-//        }
     }
     
     private void paintSelectionRectangle(Graphics2D g)
@@ -921,7 +906,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         
         
         setPreferredSize(new Dimension(getWidth(), accumulatedY));
-        System.err.println("Preferred size: " + getPreferredSize() + " Size: " + getSize());
+        //System.err.println("Preferred size: " + getPreferredSize() + " Size: " + getSize());
         
         revalidate();
         
@@ -946,7 +931,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         
         repaint(/*repaintArea*/);
         scrollRectToVisible(_focusedGuiItem.area);
-//        scrollRectToVisible(repaintArea);
     }
     
     public void setItems(File folder)
