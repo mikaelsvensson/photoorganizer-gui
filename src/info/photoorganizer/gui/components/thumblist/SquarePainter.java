@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.util.Map;
 
 public class SquarePainter implements ListItemPainter
 {
@@ -19,8 +20,14 @@ public class SquarePainter implements ListItemPainter
     public void paint(ListItem item, boolean isSelected, Dimension itemSize, Graphics2D g)
     {
         Rectangle r = g.getClipBounds();
+        Color bgColor = Color.YELLOW;
+        Map<Object, Object> metadata = item.getMetadata();
+        if (metadata != null && metadata.size() > 0)
+        {
+            bgColor = Color.ORANGE;
+        }
         
-        g.setColor(isSelected ? Color.GRAY : Color.YELLOW);
+        g.setColor(isSelected ? Color.GRAY : bgColor);
         g.fill(r);
         
         g.setColor(Color.BLACK);

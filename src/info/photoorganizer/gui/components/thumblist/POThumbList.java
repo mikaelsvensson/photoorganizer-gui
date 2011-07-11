@@ -40,9 +40,9 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 
-public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>
+public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>, ListItemListener
 {
-    private static class DemoListItem implements ListItem
+    public static class DemoListItem implements ListItem
     {
         File _f = null;
 
@@ -218,7 +218,10 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         PODialog.show(new POThumbListTestDialog(scrollPane));
     }
     
-    boolean _firstPaint = true;
+    boolean _regroupOnNextPaint = true;
+    
+    boolean _relayoutOnNextPaint = true;
+    
     private GuiItem _focusedGuiItem = null;
     
     private ImageGrouper _grouper = new FileNameGrouper();
@@ -291,7 +294,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                         _zoom = 100;
                     }
                     System.out.println("Zoom level: " + _zoom);
-                    relayout();
+                    relayoutOnNextPaint();
                 }
             }
         });
@@ -462,8 +465,8 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             private void onListItemGroupClick(ListItemGroupGuiItem guiItem, Rectangle repaintArea, MouseEvent e)
             {
                 guiItem.isExpanded = !guiItem.isExpanded;
-                repaintArea.add(guiItem.area);
-                relayout();
+                //repaintArea.add(guiItem.area);
+                relayoutOnNextPaint();
             }
         });
     }
@@ -515,7 +518,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return res;
     }
 
-    public List<ListItem> getItems()
+    public synchronized List<ListItem> getItems()
     {
         return Collections.unmodifiableList(_items);
     }
@@ -690,22 +693,38 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         return _items.iterator();
     }
+    
+    private void relayoutOnNextPaint()
+    {
+        _relayoutOnNextPaint = true;
+        repaint();
+    }
+    
+    private void regroupOnNextPaint()
+    {
+        _regroupOnNextPaint = true;
+        repaint();
+    }
 
     @Override
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g); // Paint background
         
-//        System.err.println("------------------ Paint " + paintCounter++
-//                + " affects " + g.getClipBounds() 
-//                + " width=" + getWidth()
-//                + " preferred width=" + getPreferredSize().width);
+        System.err.println("------------------ Painting "
+                + " affects " + g.getClipBounds() 
+                + " width=" + getWidth()
+                + " preferred width=" + getPreferredSize().width);
         
-        if (_firstPaint)
+        if (_regroupOnNextPaint)
         {
-            regroup(_grouper);
+            regroup();
+            _regroupOnNextPaint = false;
+        }
+        else if (_relayoutOnNextPaint)
+        {
             relayout();
-            _firstPaint = false;
+            _relayoutOnNextPaint = false;
         }
         
         if (getWidth() != getPreferredSize().width)
@@ -757,7 +776,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         for (GuiItem guiItem : _guiItemList)
         {
-            if (guiItem.isVisible)
+            if (guiItem.isVisible && guiItem.area.intersects(g.getClipBounds()))
             {
                 guiItem.paint(g);
             }
@@ -777,12 +796,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     }
 
-    private void regroup(ImageGrouper grouper)
+    private void regroup(/*ImageGrouper grouper*/)
     {
         Map<ListItemGroupGuiItem, List<ListItemGuiItem>> newGuiItemMap = new LinkedHashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
         List<GuiItem> newGuiItemList = new ArrayList<GuiItem>();
         
-        for (ImageGroup grp : grouper.group(_items))
+        for (ImageGroup grp : _grouper.group(_items))
         {
             
             ListItemGroupGuiItem groupGuiItem = getGroupGuiItem(grp);
@@ -820,6 +839,8 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
 
     private void relayout()
     {
+        System.err.println("relayout");
+        
         Dimension visibleSize = null;
         Container parent = getParent();
         if (parent instanceof JViewport)
@@ -933,12 +954,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         scrollRectToVisible(_focusedGuiItem.area);
     }
     
-    public void setItems(File folder)
+    public synchronized void setItems(File folder)
     {
         setItems(getFolderList(folder));
     }
 
-    public void setItems(Iterable<ListItem> items)
+    public synchronized void setItems(Iterable<ListItem> items)
     {
         _items = new ArrayList<ListItem>();
         
@@ -947,9 +968,13 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         {
             ListItem item = i.next();
             _items.add(item);
+            if (item instanceof ListItemEventProvider)
+            {
+                ((ListItemEventProvider)item).addListItemEventListener(this);
+            }
         }
         
-        regroup(_grouper);
+        regroup();//OnNextPaint();
     }
     
     private void setItemsSelectionStatus(List<ListItem> items, boolean selected)
@@ -968,6 +993,29 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             }
         }
         repaint(repaintArea);
+    }
+
+    public void repaint(File indexedFile)
+    {
+        for (GuiItem guiItem : _guiItemList)
+        {
+            if (guiItem instanceof ListItemGuiItem)
+            {
+                ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
+                if (listItemGuiItem.item.getFile().equals(indexedFile))
+                {
+                    repaint(listItemGuiItem.area);
+                    return;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void listItemChanged(ListItemEvent event)
+    {
+        ListItemGuiItem guiItem = getListItemGuiItem(event.getSource());
+        repaint(guiItem.area);
     }
     
 }

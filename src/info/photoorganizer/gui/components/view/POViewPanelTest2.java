@@ -4,11 +4,24 @@ import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
+import info.photoorganizer.gui.components.thumblist.ListItem;
 import info.photoorganizer.gui.components.thumblist.POThumbList;
 import info.photoorganizer.gui.components.tree.POFolderTree;
 import info.photoorganizer.gui.components.tree.POKeywordTree;
 import info.photoorganizer.gui.components.tree.POTreeSelectionEvent;
 import info.photoorganizer.gui.components.tree.POTreeSelectionListener;
+import info.photoorganizer.gui.search.EntireDatabaseImageProducer;
+import info.photoorganizer.gui.search.FolderContentsImageProducer;
+import info.photoorganizer.gui.search.Indexer;
+import info.photoorganizer.gui.search.IndexerEvent;
+import info.photoorganizer.gui.search.IndexerEventListener;
+import info.photoorganizer.gui.search.PhotoIndexer;
+import info.photoorganizer.gui.search.PhotoListItem;
+import info.photoorganizer.gui.search.ResultItem;
+import info.photoorganizer.gui.search.ResultItemProducer;
+import info.photoorganizer.gui.search.Search;
+import info.photoorganizer.gui.search.SearchResultEvent;
+import info.photoorganizer.gui.search.SearchResultListener;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.metadata.TagDefinition;
@@ -19,7 +32,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -30,22 +47,81 @@ public class POViewPanelTest2 extends PODialog
      * 
      */
     private static final long serialVersionUID = 1L;
+    
+    private Search _currentSearch = null;
+    
+    private Indexer _indexerWorker = null;
+    private PhotoIndexer _indexer = null;
 
+    private final POThumbList thumbList = new POThumbList();
+    
     public POViewPanelTest2() throws TreeException
     {
-        super("TITLE", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
+        super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
+        
+        _indexerWorker = new Indexer(getDatabase());
+        _indexerWorker.addIndexerEventListener(new IndexerEventListener()
+        {
+            @Override
+            public void fileIndexed(IndexerEvent event)
+            {
+                for (File indexedFile : event.getIndexedFiles())
+                {
+                    thumbList.repaint(indexedFile);
+                }
+            }
+        });
+        //_indexerWorker.execute();
+        
+        _indexer = new PhotoIndexer(getDatabase());
+        (new Thread(_indexer)).start();
 
         POFolderTree folderTree = new POFolderTree();
-        final POThumbList thumbList = new POThumbList();
         folderTree.addSelectionListener(new POTreeSelectionListener<File>()
         {
             
             @Override
             public void selectionChanged(POTreeSelectionEvent<File> event)
             {
-                thumbList.setItems(POThumbList.getFileList(event.getSelection()));
+                ResultItemProducer[] prods = new ResultItemProducer[/*1 + */event.getSelection().size()];
+                int i=0;
+                
+//                prods[i++] = new EntireDatabaseImageProducer(getDatabase());
+                
+                for (File folder : event.getSelection())
+                {
+                    prods[i++] = new FolderContentsImageProducer(folder, false);
+                }
+                System.out.println(prods);
+                
+                if (null != _currentSearch)
+                {
+                    _currentSearch.cancel();
+                }
+                _currentSearch = new Search(null, prods);
+                _currentSearch.addSearchResultListener(new SearchResultListener()
+                {
+                    
+                    @Override
+                    public void itemsAdded(SearchResultEvent event)
+                    {
+                        List<ListItem> items = new ArrayList<ListItem>();
+                        for (ResultItem resItem : _currentSearch.getResult())
+                        {
+                            //items.add(new PhotoListItem(resItem, _indexerWorker));
+                            items.add(new PhotoListItem(resItem, _indexer, getDatabase()));
+                        }
+                        thumbList.setItems(items);
+                    }
+                });
+                
+                Thread searchThread = new Thread(_currentSearch);
+                searchThread.start();
+                
+                //thumbList.setItems(POThumbList.getFileList(event.getSelection()));
             }
         });
+        folderTree.setPreferredSize(new Dimension(200, 100));
         
 //        POViewPaneInfo labelAlbert = new POViewPaneInfo(createLabel("Albert"), "A");
         POViewPaneInfo treeFolders = new POViewPaneInfo(folderTree, "Folders");
@@ -118,10 +194,70 @@ public class POViewPanelTest2 extends PODialog
         view.add(treeFolders, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
 //        view.add(labelAlbert, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
         view.add(keywordsField, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(treeKeywords, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
+        
         view.add(images, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
+        view.add(treeKeywords, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
         
         getContentPane().add(view, BorderLayout.CENTER);
+        
+        addWindowListener(new WindowListener()
+        {
+            
+            @Override
+            public void windowOpened(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void windowIconified(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void windowDeiconified(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void windowDeactivated(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                if (_currentSearch != null)
+                {
+                    _currentSearch.cancel();
+                }
+                if (_indexer != null)
+                {
+                    _indexer.cancel();
+                }
+            }
+            
+            @Override
+            public void windowClosed(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void windowActivated(WindowEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+        });
     }
     
     public static void main(String[] args) throws TreeException
