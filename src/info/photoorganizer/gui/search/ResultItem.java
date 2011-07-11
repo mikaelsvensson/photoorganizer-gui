@@ -1,52 +1,52 @@
 package info.photoorganizer.gui.search;
 
-import info.photoorganizer.metadata.Image;
+import info.photoorganizer.metadata.Photo;
 
 import java.io.File;
 
 public class ResultItem
 {
-    private Image _image = null;
-    private File _imageFile = null;
+    private Photo _photo = null;
+    private File _photoFile = null;
     
-    public ResultItem(File imageFile)
+    public ResultItem(File photoFile)
     {
         super();
-        setFile(imageFile);
+        setFile(photoFile);
     }
 
-    public ResultItem(Image image)
+    public ResultItem(Photo photo)
     {
         super();
-        setImage(image);
+        setPhoto(photo);
     }
     
-    public Image getImage()
+    public Photo getPhoto()
     {
-        return _image;
+        return _photo;
     }
 
-    public File getImageFile()
+    public File getPhotoFile()
     {
-        if (_image != null)
+        if (_photo != null)
         {
-            return _image.getFile();
+            return _photo.getFile();
         }
         else
         {
-            return _imageFile;
+            return _photoFile;
         }
     }
 
-    private void setFile(File imageFile)
+    private void setFile(File photoFile)
     {
-        _image = null;
-        _imageFile = imageFile;
+        _photo = null;
+        _photoFile = photoFile;
     }
 
-    private void setImage(Image image)
+    private void setPhoto(Photo photo)
     {
-        _image = image;
-        _imageFile = null;
+        _photo = photo;
+        _photoFile = null;
     }
 }

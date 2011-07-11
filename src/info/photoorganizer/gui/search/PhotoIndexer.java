@@ -82,7 +82,7 @@ public class PhotoIndexer implements Runnable
                     }
                     if (f != null)
                     {
-                        _database.indexImage(f);
+                        _database.indexPhoto(f);
                         _event.fire(new IndexerEvent(this, f));
                         //publish(f);
                         

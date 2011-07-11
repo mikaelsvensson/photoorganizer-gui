@@ -56,7 +56,7 @@ public class PhotoListItem implements ListItem, IndexerEventListener, ListItemEv
     @Override
     public Map<Object, Object> getMetadata()
     {
-        info.photoorganizer.metadata.Image image = _resultItem.getImage();
+        info.photoorganizer.metadata.Photo image = _resultItem.getPhoto();
         if (image != null)
         {
             if (null == _metadata)
@@ -83,7 +83,7 @@ public class PhotoListItem implements ListItem, IndexerEventListener, ListItemEv
     @Override
     public File getFile()
     {
-        return _resultItem.getImageFile();
+        return _resultItem.getPhotoFile();
     }
 
     @Override
@@ -93,7 +93,7 @@ public class PhotoListItem implements ListItem, IndexerEventListener, ListItemEv
         {
             if (f.equals(getFile()))
             {
-                _resultItem = new ResultItem(_database.getImage(f));
+                _resultItem = new ResultItem(_database.getPhoto(f));
                 _event.fire(new ListItemEvent(this));
             }
         }

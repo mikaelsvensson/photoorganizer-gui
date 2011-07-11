@@ -1,7 +1,7 @@
 package info.photoorganizer.gui.search;
 
 import info.photoorganizer.database.Database;
-import info.photoorganizer.metadata.Image;
+import info.photoorganizer.metadata.Photo;
 
 import java.util.Iterator;
 
@@ -18,7 +18,7 @@ public class EntireDatabaseImageProducer extends ResultItemProducer
     @Override
     protected void doInBackgroundImpl()
     {
-        Iterator<Image> images = _database.getImages();
+        Iterator<Photo> images = _database.getPhotos();
         
         while (images.hasNext() && !isCancelled())
         {

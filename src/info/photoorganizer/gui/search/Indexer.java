@@ -55,7 +55,7 @@ public class Indexer extends SwingWorker<Void, File>
                     }
                     if (f != null)
                     {
-                        _database.indexImage(f);
+                        _database.indexPhoto(f);
                         publish(f);
                         
                         if (isCancelled())
