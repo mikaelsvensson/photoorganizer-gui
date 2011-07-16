@@ -18,7 +18,7 @@ public class EntireDatabaseImageProducer extends ResultItemProducer
     @Override
     protected void doInBackgroundImpl()
     {
-        Iterator<Photo> images = _database.getPhotos();
+        Iterator<Photo> images = _database.getPhotos().iterator();
         
         while (images.hasNext() && !isCancelled())
         {
