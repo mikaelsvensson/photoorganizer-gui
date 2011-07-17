@@ -1,19 +1,17 @@
 package info.photoorganizer.gui.search;
 
+import info.photoorganizer.metadata.Photo;
 import info.photoorganizer.util.Event;
 import info.photoorganizer.util.Event.EventExecuter;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.SwingWorker;
 
-public class Search implements Runnable
+public class Search extends SwingWorker<Void, Match>
 {
-    private List<ResultItem> _result = new ArrayList<ResultItem>();
-    private ListItemFilter _query = null;
-    private ResultItemProducer[] _producers = null;
-    
     private Event<SearchResultListener, SearchResultEvent> _searchResultEvent = new Event<SearchResultListener, SearchResultEvent>(
             new EventExecuter<SearchResultListener, SearchResultEvent>()
             {
@@ -24,40 +22,50 @@ public class Search implements Runnable
                 }
             });
     
-    public synchronized void addResult(List<ResultItem> items)
+    private List<MatchProvider> _providers = new ArrayList<MatchProvider>();
+    private SearchCriterion _criterion = null;
+
+    @Override
+    protected Void doInBackground() throws Exception
     {
-        _result.addAll(items);
-        System.err.println("There are now " + _result.size() + " files to filter.");
-        _searchResultEvent.fire(new SearchResultEvent(this));
+        for (MatchProvider provider : _providers)
+        {
+            Iterator<Match> items = provider.getItems();
+            while (items.hasNext() && !isCancelled())
+            {
+                Match match = items.next();
+//                System.err.println("-------------------------------------------------------------- " + this + ".isCancelled()=" + isCancelled() + " when processing " + match);
+                if (_criterion.accept(match.getPhoto()))
+                {
+                    publish(match);
+                }
+            }
+        }
+        return null;
     }
 
-    public Search (ListItemFilter query, ResultItemProducer... producers)
+    public Search(List<MatchProvider> providers, SearchCriterion criterion)
     {
-        _query = query;
-        _producers = producers;
-    }
-    
-    public void cancel()
-    {
-        for (ResultItemProducer prod : _producers)
+        super();
+        _providers = providers;
+        if (null == criterion)
         {
-            prod.cancel(false);
+            criterion = new SearchCriterion()
+            {
+                @Override
+                public boolean accept(Photo photo)
+                {
+                    return true;
+                }
+            };
         }
+        _criterion = criterion;
     }
-    
-    public synchronized List<ResultItem> getResult()
-    {
-        return Collections.unmodifiableList(_result);
-    }
-    
+
     @Override
-    public void run()
+    protected void process(List<Match> chunks)
     {
-        for (ResultItemProducer prod : _producers)
-        {
-            prod.setSearch(this);
-            prod.execute();
-        }
+        _searchResultEvent.fire(new SearchResultEvent(this, chunks));
     }
     
     public void addSearchResultListener(SearchResultListener listener)

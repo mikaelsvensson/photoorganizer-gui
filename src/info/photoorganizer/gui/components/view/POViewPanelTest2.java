@@ -4,27 +4,24 @@ import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
-import info.photoorganizer.gui.components.thumblist.ListItem;
+import info.photoorganizer.gui.components.thumblist.MetadataLoader;
 import info.photoorganizer.gui.components.thumblist.POThumbList;
 import info.photoorganizer.gui.components.tree.POFolderTree;
 import info.photoorganizer.gui.components.tree.POKeywordTree;
 import info.photoorganizer.gui.components.tree.POTreeSelectionEvent;
 import info.photoorganizer.gui.components.tree.POTreeSelectionListener;
-import info.photoorganizer.gui.search.EntireDatabaseImageProducer;
-import info.photoorganizer.gui.search.FolderContentsImageProducer;
-import info.photoorganizer.gui.search.Indexer;
-import info.photoorganizer.gui.search.IndexerEvent;
-import info.photoorganizer.gui.search.IndexerEventListener;
-import info.photoorganizer.gui.search.PhotoIndexer;
-import info.photoorganizer.gui.search.PhotoListItem;
-import info.photoorganizer.gui.search.ResultItem;
-import info.photoorganizer.gui.search.ResultItemProducer;
-import info.photoorganizer.gui.search.Search;
+import info.photoorganizer.gui.search.FolderContentMatchProvider;
+import info.photoorganizer.gui.search.Match;
+import info.photoorganizer.gui.search.MatchProvider;
 import info.photoorganizer.gui.search.SearchResultEvent;
 import info.photoorganizer.gui.search.SearchResultListener;
 import info.photoorganizer.gui.shared.CloseOperation;
+import info.photoorganizer.metadata.DefaultTagDefinition;
 import info.photoorganizer.metadata.KeywordTagDefinition;
+import info.photoorganizer.metadata.Photo;
+import info.photoorganizer.metadata.Tag;
 import info.photoorganizer.metadata.TagDefinition;
+import info.photoorganizer.metadata.ValueTag;
 import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.WordInfo;
 
@@ -36,7 +33,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -48,34 +48,38 @@ public class POViewPanelTest2 extends PODialog
      */
     private static final long serialVersionUID = 1L;
     
-    private Search _currentSearch = null;
+    private info.photoorganizer.gui.search.Search _currentSearch = null;
     
-    private Indexer _indexerWorker = null;
-    private PhotoIndexer _indexer = null;
-
     private final POThumbList thumbList = new POThumbList();
     
     public POViewPanelTest2() throws TreeException
     {
         super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
         
-        _indexerWorker = new Indexer(getDatabase());
-        _indexerWorker.addIndexerEventListener(new IndexerEventListener()
+        thumbList.setMetadataLoader(new MetadataLoader()
         {
             @Override
-            public void fileIndexed(IndexerEvent event)
+            public Map<Object, Object> getMetadata(File file)
             {
-                for (File indexedFile : event.getIndexedFiles())
+                Map<Object, Object> res = new HashMap<Object, Object>();
+                TagDefinition fNumber = getDatabase().getTagDefinition(DefaultTagDefinition.F_NUMBER.getId());
+                Photo photo = getDatabase().getPhoto(file);
+                if (null != photo)
                 {
-                    thumbList.repaint(indexedFile);
+                    Iterator<Tag<? extends TagDefinition>> tags = photo.getTags();
+                    while (tags.hasNext())
+                    {
+                        Tag<? extends TagDefinition> tag = tags.next();
+                        if (tag instanceof ValueTag && tag.getDefinition().equals(fNumber))
+                        {
+                            res.put(fNumber, ((ValueTag)tag).getValue());
+                        }
+                    }
                 }
+                return res;
             }
         });
-        //_indexerWorker.execute();
         
-        _indexer = new PhotoIndexer(getDatabase());
-        (new Thread(_indexer)).start();
-
         POFolderTree folderTree = new POFolderTree();
         folderTree.addSelectionListener(new POTreeSelectionListener<File>()
         {
@@ -83,44 +87,78 @@ public class POViewPanelTest2 extends PODialog
             @Override
             public void selectionChanged(POTreeSelectionEvent<File> event)
             {
-                ResultItemProducer[] prods = new ResultItemProducer[/*1 + */event.getSelection().size()];
+                List<MatchProvider> prods = new ArrayList<MatchProvider>();
                 int i=0;
-                
-//                prods[i++] = new EntireDatabaseImageProducer(getDatabase());
                 
                 for (File folder : event.getSelection())
                 {
-                    prods[i++] = new FolderContentsImageProducer(folder, false);
+                    prods.add(new FolderContentMatchProvider(folder, getDatabase()));
                 }
                 System.out.println(prods);
-                
+                thumbList.clearItems();
                 if (null != _currentSearch)
                 {
-                    _currentSearch.cancel();
+                    _currentSearch.cancel(true);
+//                    System.err.println("--------------------------------------------------------------Cancelling " + _currentSearch);
                 }
-                _currentSearch = new Search(null, prods);
+                _currentSearch = new info.photoorganizer.gui.search.Search(prods, null);
                 _currentSearch.addSearchResultListener(new SearchResultListener()
                 {
                     
                     @Override
                     public void itemsAdded(SearchResultEvent event)
                     {
-                        List<ListItem> items = new ArrayList<ListItem>();
-                        for (ResultItem resItem : _currentSearch.getResult())
+                        for (Match match : event.getNewMatches())
                         {
-                            //items.add(new PhotoListItem(resItem, _indexerWorker));
-                            items.add(new PhotoListItem(resItem, _indexer, getDatabase()));
+                            System.out.println("Found " + match.getPhoto().getFile().getName());
+                            thumbList.addItem(match.getPhoto().getFile());
                         }
-                        thumbList.setItems(items);
                     }
                 });
                 
                 Thread searchThread = new Thread(_currentSearch);
                 searchThread.start();
-                
-                //thumbList.setItems(POThumbList.getFileList(event.getSelection()));
             }
         });
+//        folderTree.addSelectionListener(new POTreeSelectionListener<File>()
+//                {
+//            
+//            @Override
+//            public void selectionChanged(POTreeSelectionEvent<File> event)
+//            {
+//                ResultItemProducer[] prods = new ResultItemProducer[/*1 + */event.getSelection().size()];
+//                int i=0;
+//                
+//                for (File folder : event.getSelection())
+//                {
+//                    prods[i++] = new FolderContentsImageProducer(folder, false);
+//                }
+//                System.out.println(prods);
+//                
+//                if (null != _currentSearch)
+//                {
+//                    _currentSearch.cancel();
+//                }
+//                _currentSearch = new Search(null, prods);
+//                _currentSearch.addSearchResultListener(new SearchResultListener()
+//                {
+//                    
+//                    @Override
+//                    public void itemsAdded(SearchResultEvent event)
+//                    {
+//                        List<ListItem> items = new ArrayList<ListItem>();
+//                        for (ResultItem resItem : _currentSearch.getResult())
+//                        {
+//                            items.add(new PhotoListItem(resItem, _indexer, getDatabase()));
+//                        }
+//                        thumbList.setItems(items);
+//                    }
+//                });
+//                
+//                Thread searchThread = new Thread(_currentSearch);
+//                searchThread.start();
+//            }
+//                });
         folderTree.setPreferredSize(new Dimension(200, 100));
         
 //        POViewPaneInfo labelAlbert = new POViewPaneInfo(createLabel("Albert"), "A");
@@ -236,11 +274,7 @@ public class POViewPanelTest2 extends PODialog
             {
                 if (_currentSearch != null)
                 {
-                    _currentSearch.cancel();
-                }
-                if (_indexer != null)
-                {
-                    _indexer.cancel();
+                    _currentSearch.cancel(true);
                 }
             }
             

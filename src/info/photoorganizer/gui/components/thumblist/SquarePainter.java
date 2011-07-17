@@ -25,6 +25,7 @@ public class SquarePainter implements ListItemPainter
         if (metadata != null && metadata.size() > 0)
         {
             bgColor = Color.ORANGE;
+            g.drawString(metadata.toString(), 0, itemSize.height - 40);
         }
         
         g.setColor(isSelected ? Color.GRAY : bgColor);
@@ -44,6 +45,8 @@ public class SquarePainter implements ListItemPainter
                 g.drawImage(img, 0, 0, null);
             }
         }
+        
+        
         g.drawString(item.getFile().getName(), 0, itemSize.height - fontMetrics.getDescent());
     }
 

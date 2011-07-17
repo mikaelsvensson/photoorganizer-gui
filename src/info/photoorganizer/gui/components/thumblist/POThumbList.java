@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -40,73 +42,82 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 
-public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem>, ListItemListener
+public class POThumbList extends JPanel implements Scrollable
 {
-    public static class DemoListItem implements ListItem
+    private static final Integer TASK_PRIORITY_HIGH = 1;
+    private static final Integer TASK_PRIORITY_LOW = 0;
+    
+    private PrioritizedSwingWorker<Void, DefaultListItem, Integer> _metadataWorker = null;
+    private MetadataLoader _metadataLoader = null;
+    
+    public synchronized MetadataLoader getMetadataLoader()
     {
-        File _f = null;
+        return _metadataLoader;
+    }
 
-        public DemoListItem(File f)
+    public synchronized void setMetadataLoader(MetadataLoader metadataLoader)
+    {
+        _metadataLoader = metadataLoader;
+    }
+
+    private class MetadataLoaderCallable implements Callable<DefaultListItem>
+    {
+
+        private DefaultListItem _item = null;
+        
+        public MetadataLoaderCallable(DefaultListItem item)
         {
-            super();
-            _f = f;
+            _item = item;
         }
-
+        
         @Override
-        public boolean equals(Object obj)
+        public DefaultListItem call() throws Exception
         {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            DemoListItem other = (DemoListItem) obj;
-            if (_f == null)
+            if (_item.getMetadata() == null)
             {
-                if (other._f != null)
-                    return false;
+                _item.setMetadata(_metadataLoader.getMetadata(_item.getFile()));
             }
-            else if (!_f.equals(other._f))
-                return false;
-            return true;
-        }
-
-        @Override
-        public File getFile()
-        {
-            return _f;
-        }
-
-        @Override
-        public Map<Object, Object> getMetadata()
-        {
-            return null;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((_f == null) ? 0 : _f.hashCode());
-            return result;
-        }
-
-        @Override
-        public String toString()
-        {
-            return _f.getName();
-        }
-
-        @Override
-        public Image getImage(Dimension preferredSize)
-        {
-            // TODO Auto-generated method stub
-            return null;
+            return _item;
         }
         
     }
+    
+    void addMetadataTask(DefaultListItem item, boolean highPriority)
+    {
+        if (null == _metadataWorker || _metadataWorker.isDone())
+        {
+            _metadataWorker = new PrioritizedSwingWorker<Void, DefaultListItem, Integer>()
+            {
+
+                @Override
+                protected void process(List<DefaultListItem> chunks)
+                {
+                    Rectangle area = new Rectangle();
+                    for (ListItem chunk : chunks)
+                    {
+                        if (isCancelled())
+                        {
+                            break;
+                        }
+                        ListItemGuiItem guiItem = getListItemGuiItem(chunk);
+                        if (null != guiItem)
+                        {
+                            area.add(guiItem.area);
+                        }
+                        else
+                        {
+                            System.err.println("Could not locate " + chunk + " on screen! Perhaps we are trying to process a task");
+                        }
+                    }
+                    repaint(area);
+                }
+                
+            };
+            _metadataWorker.execute();
+        }
+        _metadataWorker.addTask(new MetadataLoaderCallable(item), highPriority ? TASK_PRIORITY_HIGH : TASK_PRIORITY_LOW);
+    }
+    
     private static class POThumbListTestDialog extends PODialog
     {
 
@@ -150,61 +161,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
      * 
      */
     private static final long serialVersionUID = 1L;
-    
-    private static void addFolderContentToFileList(List<ListItem> list, File folder, boolean recursive)
-    {
-        File[] files = folder.listFiles();
-        if (null != files)
-        {
-            for (File f : files)
-            {
-                if (f.isFile())
-                {
-                    list.add(new DemoListItem(f));
-                }
-                else if (f.isDirectory() && recursive)
-                {
-                    addFolderContentToFileList(list, f, recursive);
-                }
-            }
-        }
-    }
-    
-    public static List<ListItem> getFileList(Iterable<File> selection)
-    {
-        List<ListItem> items = new ArrayList<ListItem>();
-        if (selection != null)
-        {
-            for (File f : selection)
-            {
-                if (f.isFile())
-                {
-                    items.add(new DemoListItem(f));
-                }
-                else if (f.isDirectory())
-                {
-                    addFolderContentToFileList(items, f, false);
-                }
-            }
-        }
-        return items;
-    }
-    
-    public static List<ListItem> getFolderList(File folder)
-    {
-        List<ListItem> items = new ArrayList<ListItem>();
-        if (folder.isDirectory())
-        {
-            addFolderContentToFileList(items, folder, false);
-        }
-        return items;
-    }
-    
-    public static List<ListItem> getFolderList(String path)
-    {
-        return getFolderList(new File(path));
-    }
-    
+
     public static void main(String[] args)
     {
         POThumbList thumbList = new POThumbList();
@@ -218,19 +175,19 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         PODialog.show(new POThumbListTestDialog(scrollPane));
     }
     
-    boolean _regroupOnNextPaint = true;
+    boolean _regroupPending = true;
     
-    boolean _relayoutOnNextPaint = true;
+    boolean _relayoutPending = true;
     
     private GuiItem _focusedGuiItem = null;
     
-    private ImageGrouper _grouper = new FileNameGrouper();
+    private Grouper _grouper = new Grouper(new FileNameGrouper());
     
     private List<GuiItem> _guiItemList = new ArrayList<GuiItem>();
     
     private Map<ListItemGroupGuiItem, List<ListItemGuiItem>> _guiItemMap = new HashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
     
-    private ArrayList<ListItem> _items = null;
+    private ArrayList<DefaultListItem> _items = null;
     
     private Rectangle _mouseSelectionArea = null;
     
@@ -294,7 +251,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                         _zoom = 100;
                     }
                     System.out.println("Zoom level: " + _zoom);
-                    relayoutOnNextPaint();
+                    scheduleRelayout();
                 }
             }
         });
@@ -465,13 +422,12 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             private void onListItemGroupClick(ListItemGroupGuiItem guiItem, Rectangle repaintArea, MouseEvent e)
             {
                 guiItem.isExpanded = !guiItem.isExpanded;
-                //repaintArea.add(guiItem.area);
-                relayoutOnNextPaint();
+                scheduleRelayout();
             }
         });
     }
     
-    public void deselectItems(List<ListItem> items)
+    public void deselectItems(List<File> items)
     {
         setItemsSelectionStatus(items, false);
     }
@@ -516,11 +472,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             }
         }
         return res;
-    }
-
-    public synchronized List<ListItem> getItems()
-    {
-        return Collections.unmodifiableList(_items);
     }
 
     ListItem getListItemAtPoint(Point coord)
@@ -671,9 +622,9 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         return 10;
     }
 
-    public List<ListItem> getSelectedItems()
+    public List<File> getSelectedItems()
     {
-        List<ListItem> res = new ArrayList<ListItem>();
+        List<File> res = new ArrayList<File>();
         for (GuiItem guiItem : _guiItemList)
         {
             if (guiItem instanceof ListItemGuiItem)
@@ -681,29 +632,43 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
                 ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
                 if (listItemGuiItem.isSelected)
                 {
-                    res.add(listItemGuiItem.item);
+                    res.add(listItemGuiItem.item.getFile());
                 }
             }
         }
         return res;
     }
 
-    @Override
-    public Iterator<ListItem> iterator()
+//    @Override
+//    public Iterator<ListItem> iterator()
+//    {
+//        return _items.iterator();
+//    }
+    
+    private void scheduleRelayout()
     {
-        return _items.iterator();
+        if (getWidth() > 0 && getHeight() > 0)
+        {
+            _relayoutPending = true;
+            repaint();
+        }
+        else
+        {
+            relayout();
+        }
     }
     
-    private void relayoutOnNextPaint()
+    private void scheduleRegroup()
     {
-        _relayoutOnNextPaint = true;
-        repaint();
-    }
-    
-    private void regroupOnNextPaint()
-    {
-        _regroupOnNextPaint = true;
-        repaint();
+        if (getWidth() > 0 && getHeight() > 0)
+        {
+            _regroupPending = true;
+            repaint();
+        }
+        else
+        {
+            regroup();
+        }
     }
 
     @Override
@@ -711,20 +676,20 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     {
         super.paintComponent(g); // Paint background
         
-        System.err.println("------------------ Painting "
-                + " affects " + g.getClipBounds() 
-                + " width=" + getWidth()
-                + " preferred width=" + getPreferredSize().width);
+//        System.err.println("------------------ Painting"
+//                + " affects " + g.getClipBounds() 
+//                + " width=" + getWidth()
+//                + " preferred width=" + getPreferredSize().width);
         
-        if (_regroupOnNextPaint)
+        if (_regroupPending)
         {
             regroup();
-            _regroupOnNextPaint = false;
+            _regroupPending = false;
         }
-        else if (_relayoutOnNextPaint)
+        else if (_relayoutPending)
         {
             relayout();
-            _relayoutOnNextPaint = false;
+            _relayoutPending = false;
         }
         
         if (getWidth() != getPreferredSize().width)
@@ -767,7 +732,6 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         {
             BasicStroke stroke = new BasicStroke(0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 0, new float[] {2,2}, 0);
             Rectangle focusRect = new Rectangle(_focusedGuiItem.area.x, _focusedGuiItem.area.y, _focusedGuiItem.area.width - 1, _focusedGuiItem.area.height - 1);
-//            System.err.println("paintFocusIndicator " + focusRect);
             g.draw(stroke.createStrokedShape(focusRect));
         }
     }
@@ -796,7 +760,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     }
 
-    private void regroup(/*ImageGrouper grouper*/)
+    private synchronized void regroup(/*ImageGrouper grouper*/)
     {
         Map<ListItemGroupGuiItem, List<ListItemGuiItem>> newGuiItemMap = new LinkedHashMap<ListItemGroupGuiItem, List<ListItemGuiItem>>();
         List<GuiItem> newGuiItemList = new ArrayList<GuiItem>();
@@ -837,7 +801,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         repaint();
     }
 
-    private void relayout()
+    private synchronized void relayout()
     {
         System.err.println("relayout");
         
@@ -934,7 +898,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         repaint();
     }
 
-    public void selectItems(List<ListItem> items)
+    public void selectItems(List<File> items)
     {
         setItemsSelectionStatus(items, true);
     }
@@ -956,28 +920,41 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
     
     public synchronized void setItems(File folder)
     {
-        setItems(getFolderList(folder));
-    }
-
-    public synchronized void setItems(Iterable<ListItem> items)
-    {
-        _items = new ArrayList<ListItem>();
-        
-        Iterator<ListItem> i = items.iterator();
-        while (i.hasNext())
-        {
-            ListItem item = i.next();
-            _items.add(item);
-            if (item instanceof ListItemEventProvider)
-            {
-                ((ListItemEventProvider)item).addListItemEventListener(this);
-            }
-        }
-        
-        regroup();//OnNextPaint();
+        setItems(Arrays.asList(folder.listFiles()));
+        scheduleRegroup();
     }
     
-    private void setItemsSelectionStatus(List<ListItem> items, boolean selected)
+    public synchronized void addItem(File file)
+    {
+        if (_items == null)
+        {
+            _items = new ArrayList<DefaultListItem>();
+        }
+        _items.add(new DefaultListItem(file, this));
+        scheduleRegroup();
+    }
+    
+    public synchronized void clearItems()
+    {
+        _items = new ArrayList<DefaultListItem>();
+        scheduleRegroup();
+    }
+
+    public synchronized void setItems(Iterable<File> items)
+    {
+        _items = new ArrayList<DefaultListItem>();
+        
+        Iterator<File> i = items.iterator();
+        while (i.hasNext())
+        {
+            File f = i.next();
+            _items.add(new DefaultListItem(f, this));
+        }
+        
+        scheduleRegroup();
+    }
+    
+    private void setItemsSelectionStatus(List<File> items, boolean selected)
     {
         Rectangle repaintArea = new Rectangle();
         for (GuiItem guiItem : _guiItemList)
@@ -985,7 +962,7 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
             if (guiItem instanceof ListItemGuiItem)
             {
                 ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
-                if (items.contains(listItemGuiItem.item))
+                if (items.contains(listItemGuiItem.item.getFile()))
                 {
                     listItemGuiItem.isSelected = selected;
                     repaintArea.add(listItemGuiItem.area);
@@ -1011,11 +988,4 @@ public class POThumbList extends JPanel implements Scrollable, Iterable<ListItem
         }
     }
 
-    @Override
-    public void listItemChanged(ListItemEvent event)
-    {
-        ListItemGuiItem guiItem = getListItemGuiItem(event.getSource());
-        repaint(guiItem.area);
-    }
-    
 }
