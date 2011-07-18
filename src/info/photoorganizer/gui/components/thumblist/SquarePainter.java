@@ -20,18 +20,19 @@ public class SquarePainter implements ListItemPainter
     public void paint(ListItem item, boolean isSelected, Dimension itemSize, Graphics2D g)
     {
         Rectangle r = g.getClipBounds();
-        Color bgColor = Color.YELLOW;
-        Map<Object, Object> metadata = item.getMetadata();
-        if (metadata != null && metadata.size() > 0)
-        {
-            bgColor = Color.ORANGE;
-            g.drawString(metadata.toString(), 0, itemSize.height - 40);
-        }
         
-        g.setColor(isSelected ? Color.GRAY : bgColor);
+        Map<Object, Object> metadata = item.getMetadata();
+        boolean hasMetadata = metadata != null && metadata.size() > 0;
+        
+        g.setColor(isSelected ? Color.GRAY : hasMetadata ? Color.ORANGE : Color.YELLOW);
         g.fill(r);
         
         g.setColor(Color.BLACK);
+        if (hasMetadata)
+        {
+            g.drawString(metadata.toString(), 0, itemSize.height - 40);
+        }
+        
         FontMetrics fontMetrics = g.getFontMetrics();
         Dimension imageSize = new Dimension(itemSize.width, itemSize.height-fontMetrics.getHeight());
         Image img = item.getImage(imageSize);
