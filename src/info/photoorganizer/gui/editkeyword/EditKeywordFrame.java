@@ -1,6 +1,7 @@
 package info.photoorganizer.gui.editkeyword;
 
 import info.photoorganizer.database.DatabaseStorageException;
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.shared.CloseOperation;
@@ -11,7 +12,6 @@ import info.photoorganizer.util.WordInfo;
 
 import java.awt.Container;
 import java.awt.event.ActionEvent;
-import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -53,7 +53,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _locationCity)
         {
-            _locationCity = createTextField("");
+            _locationCity = GuiComponentFactory.createTextField("");
         }
         return _locationCity;
     }
@@ -62,7 +62,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _locationCountry)
         {
-            _locationCountry = createTextField("");
+            _locationCountry = GuiComponentFactory.createTextField("");
         }
         return _locationCountry;
     }
@@ -71,7 +71,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _locationLatitude)
         {
-            _locationLatitude = createTextField("");
+            _locationLatitude = GuiComponentFactory.createTextField("");
         }
         return _locationLatitude;
     }
@@ -80,7 +80,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _locationLongitude)
         {
-            _locationLongitude = createTextField("");
+            _locationLongitude = GuiComponentFactory.createTextField("");
         }
         return _locationLongitude;
     }
@@ -164,7 +164,7 @@ public class EditKeywordFrame extends PODialog
     
     public EditKeywordFrame(PODialog owner, KeywordTagDefinition keywordToEdit)
     {
-        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, createBoxLayoutPanel(false));
+        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false));
         
         _keyword = keywordToEdit;
         
@@ -175,7 +175,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _cancelButton)
         {
-            _cancelButton = createButton(getI18nText("CANCEL_BUTTON_TEXT"), _cancelButtonActionListener);
+            _cancelButton = GuiComponentFactory.createButton(getI18nText("CANCEL_BUTTON_TEXT"), _cancelButtonActionListener);
         }
         return _cancelButton;
     }
@@ -189,7 +189,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _nameField)
         {
-            _nameField = createTextField(_keyword.getName());
+            _nameField = GuiComponentFactory.createTextField(_keyword.getName());
         }
         return _nameField;
     }
@@ -198,7 +198,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _synonymsField)
         {
-            _synonymsField = createTagField(_keyword.getSynonyms(), 30);
+            _synonymsField = GuiComponentFactory.createTagField(_keyword.getSynonyms(), 30, getKeywordWordprovider());
         }
         return _synonymsField;
     }
@@ -207,7 +207,7 @@ public class EditKeywordFrame extends PODialog
     {
         if (null == _okButton)
         {
-            _okButton = createButton(getI18nText("OK_BUTTON_TEXT"), _okButtonActionListener);
+            _okButton = GuiComponentFactory.createButton(getI18nText("OK_BUTTON_TEXT"), _okButtonActionListener);
         }
         return _okButton;
     }
@@ -216,17 +216,17 @@ public class EditKeywordFrame extends PODialog
     {
         Container contentPane = getContentPane();
         
-        JPanel springLayoutPanel = createUserOptionsPanel(
-                createLabel(getI18nText("NAME_LABEL")),
+        JPanel springLayoutPanel = GuiComponentFactory.createUserOptionsPanel(
+                GuiComponentFactory.createLabel(getI18nText("NAME_LABEL")),
                 getNameField(),
-                createLabel(getI18nText("SYNONYMS_LABEL")),
+                GuiComponentFactory.createLabel(getI18nText("SYNONYMS_LABEL")),
                 getSynonymsField(),
-                createLabel(getI18nText("TYPE_LABEL")),
+                GuiComponentFactory.createLabel(getI18nText("TYPE_LABEL")),
                 getTypeButtonGroup());
         
-        JPanel buttonPanel = createFlowLayoutPanel(FlowLayoutAlignment.RIGHT, getOkButton(), getCancelButton());
+        JPanel buttonPanel = GuiComponentFactory.createFlowLayoutPanel(FlowLayoutAlignment.RIGHT, getOkButton(), getCancelButton());
         
-        addComponentsToContainer(contentPane, springLayoutPanel, buttonPanel);
+        GuiComponentFactory.addComponentsToContainer(contentPane, springLayoutPanel, buttonPanel);
         
         setDefaultButton(getOkButton());
         setCancelButton(getCancelButton());

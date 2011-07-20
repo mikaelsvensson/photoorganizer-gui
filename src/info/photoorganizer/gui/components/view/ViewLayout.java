@@ -2,7 +2,6 @@ package info.photoorganizer.gui.components.view;
 
 import java.awt.Component;
 import java.awt.GridLayout;
-import java.util.Arrays;
 
 import javax.swing.JLabel;
 import javax.swing.JSplitPane;

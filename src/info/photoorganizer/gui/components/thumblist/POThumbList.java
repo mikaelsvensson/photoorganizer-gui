@@ -1,9 +1,11 @@
 package info.photoorganizer.gui.components.thumblist;
 
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.Keys;
+import info.photoorganizer.gui.shared.Logging;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -11,7 +13,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,6 +46,8 @@ import javax.swing.Scrollable;
 
 public class POThumbList extends JPanel implements Scrollable
 {
+    private static final Logger L = Logging.getLogger(POThumbList.class);
+    
     private static final Integer TASK_PRIORITY_HIGH = 1;
     private static final Integer TASK_PRIORITY_LOW = 0;
     
@@ -106,7 +110,7 @@ public class POThumbList extends JPanel implements Scrollable
                         }
                         else
                         {
-                            System.err.println("Could not locate " + chunk + " on screen! Perhaps we are trying to process a task");
+                            L.fine("Could not locate " + chunk + " on screen! Perhaps we are trying to process a task");
                         }
                     }
                     repaint(area);
@@ -172,7 +176,7 @@ public class POThumbList extends JPanel implements Scrollable
         JScrollPane scrollPane = new JScrollPane(thumbList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setPreferredSize(new Dimension(500, 500));
         p.add(scrollPane);
-        PODialog.show(new POThumbListTestDialog(scrollPane));
+        GuiComponentFactory.show(new POThumbListTestDialog(scrollPane));
     }
     
     boolean _regroupPending = true;
@@ -241,10 +245,10 @@ public class POThumbList extends JPanel implements Scrollable
             {
                 if (e.isControlDown())
                 {
-                    _zoom += e.getWheelRotation();
+                    _zoom -= Math.signum(e.getWheelRotation())*10;
                     if (_zoom < 1)
                     {
-                        _zoom = 1;
+                        _zoom = 10;
                     }
                     else if (_zoom > 100)
                     {
@@ -756,7 +760,7 @@ public class POThumbList extends JPanel implements Scrollable
             g.fill(mouseDragArea);
             g.setColor(Color.BLACK);
             g.drawRect(mouseDragArea.x, mouseDragArea.y, mouseDragArea.width-1, mouseDragArea.height-1);
-            System.err.println("Mouse selection: " + mouseDragArea);
+            L.fine("Mouse selection: " + mouseDragArea);
         }
     }
 
@@ -803,7 +807,7 @@ public class POThumbList extends JPanel implements Scrollable
 
     private synchronized void relayout()
     {
-        System.err.println("relayout");
+        L.fine("relayout");
         
         Dimension visibleSize = null;
         Container parent = getParent();
@@ -833,7 +837,7 @@ public class POThumbList extends JPanel implements Scrollable
 
         double itemWidth = Math.sqrt(itemAspectRatio * itemArea);
         double itemHeight = Math.sqrt(itemArea * itemAspectRatio);
-        int itemsWide = (int) (visibleWidth / itemWidth);
+        int itemsWide =  (int) Math.ceil(visibleWidth / itemWidth);
         itemWidth = visibleWidth / itemsWide;
         itemHeight = itemWidth / itemAspectRatio;
 
@@ -905,7 +909,7 @@ public class POThumbList extends JPanel implements Scrollable
     
     public void setFocusedGuiItem(GuiItem focusedGuiItem)
     {
-        System.err.println("setFocusedGuiItem(" + focusedGuiItem + ")");
+        L.fine("setFocusedGuiItem(" + focusedGuiItem + ")");
         Rectangle repaintArea = new Rectangle(focusedGuiItem.area);
         if (null != _focusedGuiItem)
         {

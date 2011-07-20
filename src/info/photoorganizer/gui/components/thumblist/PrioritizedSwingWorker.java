@@ -1,7 +1,10 @@
 package info.photoorganizer.gui.components.thumblist;
 
+import info.photoorganizer.gui.shared.Logging;
+
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
 import javax.swing.SwingWorker;
 
@@ -13,6 +16,8 @@ import javax.swing.SwingWorker;
  */
 public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends SwingWorker<T, V>
 {
+    private static final Logger L = Logging.getLogger(PrioritizedSwingWorker.class);
+    
     private static final int WAIT = 2000;
     private TreeSet<Task> _tasks = new TreeSet<Task>();
     private static int num = 0;
@@ -95,14 +100,14 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
             Task prioTask = new Task(task, priority);
             _tasks.add(prioTask);
             _tasks.notifyAll();
-            System.err.println(getClass().getName() + ": ADDED " + prioTask + " (" + _tasks.size() + " items queued)");
+            L.finer("ADDED " + prioTask + " (" + _tasks.size() + " items queued)");
         }
     }
 
     @Override
     protected T doInBackground() throws Exception
     {
-        System.err.println(getClass().getName() + ": START");
+        L.finer("START");
 //        while (true)
 //        {
 //            synchronized (_tasks)
@@ -142,10 +147,10 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
             {
                 break;
             }
-            System.err.println(getClass().getName() + ": PERFORMING " + task);
+            L.fine("PERFORMING " + task);
             publish(task._task.call());
         }
-        System.err.println(getClass().getName() + ": END");
+        L.fine("END");
         return null;
     }
     
@@ -167,7 +172,7 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
             if (!_tasks.isEmpty())
             {
                 res = _tasks.last();
-                System.err.println(getClass().getName() + ": PICKING " + res + " (" + _tasks.size() + " items queued)");
+                L.fine("PICKING " + res + " (" + _tasks.size() + " items queued)");
                 _tasks.remove(res);
             }
         }

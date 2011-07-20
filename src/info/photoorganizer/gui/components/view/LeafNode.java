@@ -2,10 +2,8 @@ package info.photoorganizer.gui.components.view;
 
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
 public class LeafNode extends TreeNode

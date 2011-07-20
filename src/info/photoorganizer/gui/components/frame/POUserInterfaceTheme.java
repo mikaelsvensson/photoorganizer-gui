@@ -1,7 +1,6 @@
 package info.photoorganizer.gui.components.frame;
 
 import java.awt.Color;
-import java.awt.color.ColorSpace;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,14 +8,14 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
-public class PODialogTheme
+public class POUserInterfaceTheme
 {
     private static final String DEFAULT_FOREGROUND_KEY = "text";
     private static final String DEFAULT_ACCENT_KEY = "nimbusBase";
     private static final String DEFAULT_BACKGROUND_KEY = "control";
     
-    public static final PODialogTheme LIGHT_GREY = new PODialogTheme("Light Grey", new Color(200,200,200), new Color(50,50,50), new Color(150,150,150));
-    public static final PODialogTheme DARK_GREY = new PODialogTheme("Dark Grey", new Color(50,50,50), new Color(150,150,150), new Color(150,150,150));
+    public static final POUserInterfaceTheme LIGHT_GREY = new POUserInterfaceTheme("Light Grey", new Color(200,200,200), new Color(50,50,50), new Color(150,150,150));
+    public static final POUserInterfaceTheme DARK_GREY = new POUserInterfaceTheme("Dark Grey", new Color(50,50,50), new Color(150,150,150), new Color(150,150,150));
     
     private static Map<String, Color> _defaultColors = new HashMap<String, Color>();
     
@@ -152,7 +151,7 @@ public class PODialogTheme
         init();
     }
     
-    public static void applyTheme(PODialogTheme theme)
+    public static void applyTheme(POUserInterfaceTheme theme)
     {
         for (String key : CFG_BACKGROUND_KEYS)
         {
@@ -277,7 +276,7 @@ public class PODialogTheme
     
     private String _name = null;
 
-    public PODialogTheme(String name, Color backgroundBase, Color foregroundBase, Color accentBase)
+    public POUserInterfaceTheme(String name, Color backgroundBase, Color foregroundBase, Color accentBase)
     {
         super();
         _name = name;

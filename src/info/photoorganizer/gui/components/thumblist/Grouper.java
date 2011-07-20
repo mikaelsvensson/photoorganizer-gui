@@ -2,9 +2,9 @@ package info.photoorganizer.gui.components.thumblist;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 public class Grouper
 {

@@ -2,10 +2,11 @@ package info.photoorganizer.gui.editkeywords;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
-import info.photoorganizer.gui.components.tree.POTreePanel;
 import info.photoorganizer.gui.components.tree.POKeywordTreeModel;
+import info.photoorganizer.gui.components.tree.POTreePanel;
 import info.photoorganizer.gui.editkeyword.EditKeywordFrame;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
@@ -22,7 +23,6 @@ import info.photoorganizer.util.command.CommandManager;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -31,8 +31,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -49,8 +47,8 @@ public class EditKeywordsFrame extends PODialog
 
     public static void main(String[] args)
     {
-        initDefaultLookAndFeel();
-        show(new EditKeywordsFrame());
+        GuiComponentFactory.initDefaultLookAndFeel();
+        GuiComponentFactory.show(new EditKeywordsFrame());
     }
     private JButton _addButton = null;
     
@@ -60,7 +58,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (_testKeywordsField == null)
         {
-            _testKeywordsField = createTagField(new KeywordTagDefinition[] {}, 20);
+            _testKeywordsField = GuiComponentFactory.createTagField(new KeywordTagDefinition[] {}, 20, getKeywordWordprovider());
             _testKeywordsField.getDocument().addDocumentListener(new DocumentListener()
             {
                 
@@ -171,7 +169,7 @@ public class EditKeywordsFrame extends PODialog
     
     protected EditKeywordsFrame()
     {
-        super("TITLE", 600, 600, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
+        super("TITLE", 600, 600, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
         
         initComponents();
         
@@ -181,7 +179,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _addButton)
         {
-            _addButton = createButton(getI18nText("ADD_KEYWORD_BUTTON_TEXT"), _addButtonActionListener);
+            _addButton = GuiComponentFactory.createButton(getI18nText("ADD_KEYWORD_BUTTON_TEXT"), _addButtonActionListener);
         }
         return _addButton;
     }
@@ -197,7 +195,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _editButton)
         {
-            _editButton = createButton(getI18nText("EDIT_KEYWORD_BUTTON_TEXT"), _editButtonActionListener);
+            _editButton = GuiComponentFactory.createButton(getI18nText("EDIT_KEYWORD_BUTTON_TEXT"), _editButtonActionListener);
         }
         return _editButton;
     }
@@ -205,7 +203,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _removeButton)
         {
-            _removeButton = createButton(getI18nText("REMOVE_KEYWORD_BUTTON_TEXT"), _removeButtonActionListener);
+            _removeButton = GuiComponentFactory.createButton(getI18nText("REMOVE_KEYWORD_BUTTON_TEXT"), _removeButtonActionListener);
         }
         return _removeButton;
     }
@@ -237,7 +235,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _okButton)
         {
-            _okButton = createButton(getI18nText("OK_BUTTON_TEXT"), _okButtonActionListener);
+            _okButton = GuiComponentFactory.createButton(getI18nText("OK_BUTTON_TEXT"), _okButtonActionListener);
         }
         return _okButton;
     }
@@ -246,7 +244,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _cancelButton)
         {
-            _cancelButton = createButton(getI18nText("CANCEL_BUTTON_TEXT"), _cancelButtonActionListener);
+            _cancelButton = GuiComponentFactory.createButton(getI18nText("CANCEL_BUTTON_TEXT"), _cancelButtonActionListener);
         }
         return _cancelButton;
     }
@@ -255,7 +253,7 @@ public class EditKeywordsFrame extends PODialog
     {
         if (null == _pageEndPanel)
         {
-            _pageEndPanel = createFlowLayoutPanel(
+            _pageEndPanel = GuiComponentFactory.createFlowLayoutPanel(
                     FlowLayoutAlignment.RIGHT, 
                     getTestKeywordsField(),
                     getAddButton(), 
@@ -284,7 +282,7 @@ public class EditKeywordsFrame extends PODialog
     private void onEditButton_actionPerformed(ActionEvent event)
     {
         KeywordTagDefinition keyword = getSelectedKeyword();
-        PODialog.show(new EditKeywordFrame(this, keyword));
+        GuiComponentFactory.show(new EditKeywordFrame(this, keyword));
     }
     
     private void onKeywordsTree_TreeSelection_valueChanged()

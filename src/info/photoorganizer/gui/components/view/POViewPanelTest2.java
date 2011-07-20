@@ -2,7 +2,9 @@ package info.photoorganizer.gui.components.view;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
+import info.photoorganizer.gui.components.frame.POFrame;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.thumblist.MetadataLoader;
 import info.photoorganizer.gui.components.thumblist.POThumbList;
@@ -27,6 +29,7 @@ import info.photoorganizer.util.WordInfo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.WindowEvent;
@@ -41,7 +44,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class POViewPanelTest2 extends PODialog
+public class POViewPanelTest2 extends POFrame
 {
     /**
      * 
@@ -54,7 +57,9 @@ public class POViewPanelTest2 extends PODialog
     
     public POViewPanelTest2() throws TreeException
     {
-        super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
+        super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        
+        setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
         
         thumbList.setMetadataLoader(new MetadataLoader()
         {
@@ -63,6 +68,7 @@ public class POViewPanelTest2 extends PODialog
             {
                 Map<Object, Object> res = new HashMap<Object, Object>();
                 TagDefinition fNumber = getDatabase().getTagDefinition(DefaultTagDefinition.F_NUMBER.getId());
+                TagDefinition dateTaken = getDatabase().getTagDefinition(DefaultTagDefinition.DATE_TAKEN.getId());
                 Photo photo = getDatabase().getPhoto(file);
                 if (null != photo)
                 {
@@ -70,9 +76,12 @@ public class POViewPanelTest2 extends PODialog
                     while (tags.hasNext())
                     {
                         Tag<? extends TagDefinition> tag = tags.next();
-                        if (tag instanceof ValueTag && tag.getDefinition().equals(fNumber))
+                        if (tag instanceof ValueTag)
                         {
-                            res.put(fNumber, ((ValueTag)tag).getValue());
+                            if (tag.getDefinition().equals(fNumber) || tag.getDefinition().equals(dateTaken))
+                            {
+                                res.put(tag.getDefinition(), ((ValueTag)tag).getValue());
+                            }
                         }
                     }
                 }
@@ -184,7 +193,7 @@ public class POViewPanelTest2 extends PODialog
         p.add(new JScrollPane(thumbList), BorderLayout.CENTER);
         p.setPreferredSize(new Dimension(300, 200));
         POViewPaneInfo images = new POViewPaneInfo(p, "Images");
-        final POTagField<KeywordTagDefinition> tagField = createTagField(new KeywordTagDefinition[] {}, 20);
+        final POTagField<KeywordTagDefinition> tagField = GuiComponentFactory.createTagField(new KeywordTagDefinition[] {}, 20, getKeywordWordprovider());
         tagField.addFocusListener(new FocusListener()
         {
             
@@ -296,7 +305,8 @@ public class POViewPanelTest2 extends PODialog
     
     public static void main(String[] args) throws TreeException
     {
-        initDefaultLookAndFeel();
-        show(new POViewPanelTest2());
+//        imx.loggui.LogMaster.startLogGui();
+        GuiComponentFactory.initDefaultLookAndFeel();
+        GuiComponentFactory.show(new POViewPanelTest2());
     }
 }

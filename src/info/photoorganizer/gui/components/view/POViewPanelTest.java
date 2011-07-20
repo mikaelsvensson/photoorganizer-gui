@@ -1,22 +1,21 @@
 package info.photoorganizer.gui.components.view;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JLabel;
-
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
+
+import java.awt.BorderLayout;
 
 public class POViewPanelTest extends PODialog
 {
     public POViewPanelTest() throws TreeException
     {
-        super("test", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, createBorderLayoutPanel());
+        super("test", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
 
-        POViewPaneInfo labelAlbert = new POViewPaneInfo(createLabel("Albert"), "A");
-        POViewPaneInfo labelBertha = new POViewPaneInfo(createLabel("Bertha"), "B");
-        POViewPaneInfo labelCeasar = new POViewPaneInfo(createLabel("Ceasar"), "C");
-        POViewPaneInfo labelDaniel = new POViewPaneInfo(createLabel("Daniel"), "D");
+        POViewPaneInfo labelAlbert = new POViewPaneInfo(GuiComponentFactory.createLabel("Albert"), "A");
+        POViewPaneInfo labelBertha = new POViewPaneInfo(GuiComponentFactory.createLabel("Bertha"), "B");
+        POViewPaneInfo labelCeasar = new POViewPaneInfo(GuiComponentFactory.createLabel("Ceasar"), "C");
+        POViewPaneInfo labelDaniel = new POViewPaneInfo(GuiComponentFactory.createLabel("Daniel"), "D");
         
         POViewPanel view = new POViewPanel();
         
@@ -33,6 +32,6 @@ public class POViewPanelTest extends PODialog
     
     public static void main(String[] args) throws TreeException
     {
-        show(new POViewPanelTest());
+        GuiComponentFactory.show(new POViewPanelTest());
     }
 }

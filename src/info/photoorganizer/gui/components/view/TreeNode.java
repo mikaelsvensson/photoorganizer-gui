@@ -1,10 +1,8 @@
 package info.photoorganizer.gui.components.view;
 
-import info.photoorganizer.metadata.KeywordTagDefinitionEvent;
-import info.photoorganizer.metadata.KeywordTagDefinitionEventListener;
 import info.photoorganizer.util.Event;
-import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.Event.EventExecuter;
+import info.photoorganizer.util.StringUtils;
 
 import java.awt.Component;
 import java.util.ArrayList;

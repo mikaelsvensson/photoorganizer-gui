@@ -1,8 +1,8 @@
 package info.photoorganizer.gui.search;
 
-import java.util.regex.Pattern;
-
 import info.photoorganizer.metadata.Photo;
+
+import java.util.regex.Pattern;
 
 public class FilenameCriterion implements SearchCriterion
 {
