@@ -17,9 +17,9 @@ public class ListItemGroupGuiItem extends GuiItem
         return _group;
     }
 
-    public ListItemGroupGuiItem(ImageGroup group, Rectangle area)
+    public ListItemGroupGuiItem(ImageGroup group, Rectangle area, POThumbList owner)
     {
-        super(area);
+        super(area, owner);
         _group = group;
     }
 

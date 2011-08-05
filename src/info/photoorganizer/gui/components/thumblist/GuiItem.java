@@ -7,10 +7,12 @@ import java.awt.Shape;
 
 public abstract class GuiItem
 {
-    protected GuiItem(Rectangle area)
+    protected POThumbList owner = null;
+    protected GuiItem(Rectangle area, POThumbList owner)
     {
         super();
         this.area = area;
+        this.owner = owner;
     }
 
     /**

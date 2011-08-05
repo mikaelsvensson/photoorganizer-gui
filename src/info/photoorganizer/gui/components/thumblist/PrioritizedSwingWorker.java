@@ -2,6 +2,7 @@ package info.photoorganizer.gui.components.thumblist;
 
 import info.photoorganizer.gui.shared.Logging;
 
+import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
@@ -93,11 +94,23 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
         }
     }
     
-    public void addTask(Callable<V> task, P priority)
+    public void addTask(Callable<V> task, P priority, boolean removeExisting)
     {
         synchronized (_tasks)
         {
             Task prioTask = new Task(task, priority);
+            if (removeExisting)
+            {
+                Iterator<Task> iterator = _tasks.iterator();
+                while (iterator.hasNext())
+                {
+                    if (iterator.next()._task.equals(prioTask._task))
+                    {
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
             _tasks.add(prioTask);
             _tasks.notifyAll();
             L.finer("ADDED " + prioTask + " (" + _tasks.size() + " items queued)");

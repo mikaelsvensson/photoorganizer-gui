@@ -6,6 +6,9 @@ import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.Keys;
 import info.photoorganizer.gui.shared.Logging;
+import info.photoorganizer.metadata.Orientation;
+import info.photoorganizer.util.Event;
+import info.photoorganizer.util.Event.EventExecuter;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -13,6 +16,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -53,10 +57,40 @@ public class POThumbList extends JPanel implements Scrollable
     
     private PrioritizedSwingWorker<Void, DefaultListItem, Integer> _metadataWorker = null;
     private MetadataLoader _metadataLoader = null;
+    public synchronized ImageLoader getImageLoader()
+    {
+        return _imageLoader;
+    }
+
+    public synchronized void setImageLoader(ImageLoader imageLoader)
+    {
+        _imageLoader = imageLoader;
+    }
+
+    private ImageLoader _imageLoader = null;
+    private Event<SelectionEventListener, SelectionEvent> _selectionEvent = new Event<SelectionEventListener, SelectionEvent>(
+            new EventExecuter<SelectionEventListener, SelectionEvent>()
+            {
+                @Override
+                public void fire(SelectionEventListener listener, SelectionEvent event)
+                {
+                    listener.selectionChanged(event);
+                }
+            });
     
     public synchronized MetadataLoader getMetadataLoader()
     {
         return _metadataLoader;
+    }
+
+    public void addSelectionListener(SelectionEventListener listener)
+    {
+        _selectionEvent.addListener(listener);
+    }
+
+    public void removeSelectionListener(SelectionEventListener listener)
+    {
+        _selectionEvent.removeListener(listener);
     }
 
     public synchronized void setMetadataLoader(MetadataLoader metadataLoader)
@@ -83,16 +117,83 @@ public class POThumbList extends JPanel implements Scrollable
             }
             return _item;
         }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj != null && obj instanceof MetadataLoaderCallable)
+            {
+                return ((MetadataLoaderCallable)obj)._item.getFile().equals(_item.getFile());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return _item.getFile().hashCode();
+        }
         
     }
     
-    void addMetadataTask(DefaultListItem item, boolean highPriority)
+    private class ImageLoaderCallable implements Callable<DefaultListItem>
+    {
+        
+        private DefaultListItem _item = null;
+        private Dimension _preferredSize = null;
+        
+        public ImageLoaderCallable(DefaultListItem item, Dimension preferredSize)
+        {
+            _item = item;
+            _preferredSize = preferredSize;
+        }
+        
+        @Override
+        public DefaultListItem call() throws Exception
+        {
+//            Image image = _item.getImage(_preferredSize);
+//            if (image == null)
+//            {
+                _item.setImage(_imageLoader.getImage(_item.getFile(), _preferredSize, _item.getOrientation()), _preferredSize);
+//            }
+            return _item;
+        }
+        
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj != null && obj instanceof ImageLoaderCallable)
+            {
+                return ((ImageLoaderCallable)obj)._item.getFile().equals(_item.getFile());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return _item.getFile().hashCode();
+        }
+        
+    }
+    
+    synchronized void addMetadataTask(DefaultListItem item, boolean highPriority)
+    {
+        getWorker().addTask(new MetadataLoaderCallable(item), highPriority ? TASK_PRIORITY_HIGH : TASK_PRIORITY_LOW, false);
+    }
+    
+    synchronized void addImageTask(DefaultListItem item, Dimension preferredSize, boolean highPriority)
+    {
+        getWorker().addTask(new ImageLoaderCallable(item, preferredSize), highPriority ? TASK_PRIORITY_HIGH : TASK_PRIORITY_LOW, true);
+    }
+
+    private synchronized PrioritizedSwingWorker<Void, DefaultListItem, Integer> getWorker()
     {
         if (null == _metadataWorker || _metadataWorker.isDone())
         {
             _metadataWorker = new PrioritizedSwingWorker<Void, DefaultListItem, Integer>()
             {
-
+                
                 @Override
                 protected void process(List<DefaultListItem> chunks)
                 {
@@ -119,7 +220,7 @@ public class POThumbList extends JPanel implements Scrollable
             };
             _metadataWorker.execute();
         }
-        _metadataWorker.addTask(new MetadataLoaderCallable(item), highPriority ? TASK_PRIORITY_HIGH : TASK_PRIORITY_LOW);
+        return _metadataWorker;
     }
     
     private static class POThumbListTestDialog extends PODialog
@@ -331,6 +432,8 @@ public class POThumbList extends JPanel implements Scrollable
             @Override
             public void mouseReleased(MouseEvent e)
             {
+                resetSelectionEventDirty();
+                
                 Rectangle repaintArea = new Rectangle();
                 
                 boolean extendSelection = e.isShiftDown() || e.isControlDown();
@@ -343,6 +446,32 @@ public class POThumbList extends JPanel implements Scrollable
                 {
                     repaintArea.add(_mouseSelectionArea);
                     
+                    for (GuiItem guiItem : _guiItemList)
+                    {
+                        if (guiItem instanceof ListItemGuiItem)
+                        {
+                            ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
+                            if (listItemGuiItem.isVisible)
+                            {
+                                if (listItemGuiItem.area.intersects(_mouseSelectionArea))
+                                {
+                                    boolean selectionState = e.isControlDown() ? !listItemGuiItem.isSelected() : true;
+                                    setItemSelectionStatus(listItemGuiItem, selectionState);
+                                }
+                                else
+                                {
+                                    if (!extendSelection)
+                                    {
+                                        if (setItemSelectionStatus(listItemGuiItem, false))
+                                        {
+                                            repaintArea.add(listItemGuiItem.area);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     for (GuiItem item : getGuiItemsInArea(_mouseSelectionArea))
                     {
                         if (item instanceof ListItemGuiItem)
@@ -350,11 +479,11 @@ public class POThumbList extends JPanel implements Scrollable
                             ListItemGuiItem listItemGuiItem = (ListItemGuiItem)item;
                             if (e.isControlDown())
                             {
-                                listItemGuiItem.isSelected = !listItemGuiItem.isSelected;
+                                toggleItemSelectionStatus(listItemGuiItem);
                             }
                             else
                             {
-                                listItemGuiItem.isSelected = true;
+                                setItemSelectionStatus(listItemGuiItem, true);
                             }
                         }
                         repaintArea.add(item.area);
@@ -388,6 +517,8 @@ public class POThumbList extends JPanel implements Scrollable
                 _mouseSelectionDragStart = null;
                 _mouseSelectionArea = null;
                 
+                fireSelectionEventIfDirty();
+                
                 repaint(repaintArea);
                 
             }
@@ -409,14 +540,16 @@ public class POThumbList extends JPanel implements Scrollable
                         GuiItem gI = _guiItemList.get(i);
                         if (gI instanceof ListItemGuiItem)
                         {
-                            ((ListItemGuiItem)gI).isSelected = true;
-                            repaintArea.add(gI.area);
+                            if (setItemSelectionStatus((ListItemGuiItem)gI, true))
+                            {
+                                repaintArea.add(gI.area);
+                            }
                         }
                     }
                 }
                 else
                 {
-                    guiItem.isSelected = !guiItem.isSelected;
+                    toggleItemSelectionStatus(guiItem);
                     repaintArea.add(guiItem.area);
                     
                     _shiftSelectionOldItem = null;
@@ -431,7 +564,17 @@ public class POThumbList extends JPanel implements Scrollable
         });
     }
     
-    public void deselectItems(List<File> items)
+    protected boolean setItemSelectionStatus(ListItemGuiItem listItemGuiItem, boolean selected)
+    {
+        return listItemGuiItem.setSelected(selected);
+    }
+    
+    protected void toggleItemSelectionStatus(ListItemGuiItem listItemGuiItem)
+    {
+        listItemGuiItem.setSelected(!listItemGuiItem.isSelected());
+    }
+
+    public synchronized void deselectItems(List<File> items)
     {
         setItemsSelectionStatus(items, false);
     }
@@ -483,7 +626,7 @@ public class POThumbList extends JPanel implements Scrollable
         GuiItem guiItem = getGuiItemAtPoint(coord);
         if (guiItem instanceof ListItemGuiItem)
         {
-            return ((ListItemGuiItem)guiItem).item;
+            return ((ListItemGuiItem)guiItem).getItem();
         }
         return null;
     }
@@ -506,7 +649,7 @@ public class POThumbList extends JPanel implements Scrollable
     {
         for (ListItemGuiItem guiItem : guiItems)
         {
-            if (guiItem.item == item)
+            if (guiItem.getItem() == item)
             {
                 return guiItem;
             }
@@ -634,9 +777,9 @@ public class POThumbList extends JPanel implements Scrollable
             if (guiItem instanceof ListItemGuiItem)
             {
                 ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
-                if (listItemGuiItem.isSelected)
+                if (listItemGuiItem.isSelected())
                 {
-                    res.add(listItemGuiItem.item.getFile());
+                    res.add(listItemGuiItem.getItem().getFile());
                 }
             }
         }
@@ -775,7 +918,7 @@ public class POThumbList extends JPanel implements Scrollable
             ListItemGroupGuiItem groupGuiItem = getGroupGuiItem(grp);
             if (groupGuiItem == null)
             {
-                groupGuiItem = new ListItemGroupGuiItem(grp, new Rectangle());
+                groupGuiItem = new ListItemGroupGuiItem(grp, new Rectangle(), this);
             }
             
             ArrayList<ListItemGuiItem> itemList = new ArrayList<ListItemGuiItem>();
@@ -787,7 +930,7 @@ public class POThumbList extends JPanel implements Scrollable
                 ListItemGuiItem imageGuiItem = getListItemGuiItem(item);
                 if (imageGuiItem == null)
                 {
-                    imageGuiItem = new ListItemGuiItem(item, _painter, new Rectangle());
+                    imageGuiItem = new ListItemGuiItem(item, _painter, new Rectangle(), this);
                 }
                 itemList.add(imageGuiItem);
                 newGuiItemList.add(imageGuiItem);
@@ -863,7 +1006,7 @@ public class POThumbList extends JPanel implements Scrollable
                     listItemGuiItem.isVisible = groupGuiItem.isExpanded;
                     if (groupGuiItem.isExpanded)
                     {
-                        ListItem item = listItemGuiItem.item;
+                        ListItem item = listItemGuiItem.getItem();
                         if (i == itemsWide)
                         {
                             i = 0;
@@ -902,7 +1045,7 @@ public class POThumbList extends JPanel implements Scrollable
         repaint();
     }
 
-    public void selectItems(List<File> items)
+    public synchronized void selectItems(List<File> items)
     {
         setItemsSelectionStatus(items, true);
     }
@@ -958,22 +1101,53 @@ public class POThumbList extends JPanel implements Scrollable
         scheduleRegroup();
     }
     
-    private void setItemsSelectionStatus(List<File> items, boolean selected)
+    private synchronized void setItemsSelectionStatus(List<File> items, boolean selected)
     {
+        boolean fire = false;
         Rectangle repaintArea = new Rectangle();
         for (GuiItem guiItem : _guiItemList)
         {
             if (guiItem instanceof ListItemGuiItem)
             {
                 ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
-                if (items.contains(listItemGuiItem.item.getFile()))
+                if (items.contains(listItemGuiItem.getItem().getFile()))
                 {
-                    listItemGuiItem.isSelected = selected;
+                    setItemSelectionStatus(listItemGuiItem, selected);
+                    fire = true;
                     repaintArea.add(listItemGuiItem.area);
                 }
             }
         }
+        if (fire)
+        {
+            fireSelectionEvent();
+        }
         repaint(repaintArea);
+    }
+    
+    private void fireSelectionEvent()
+    {
+        _selectionEvent.fire(new SelectionEvent(this, getSelectedItems()));
+    }
+    
+    private boolean _selectionEventDirty = false;
+    
+    void selectionHasChanged()
+    {
+        _selectionEventDirty = true;
+    }
+    
+    void resetSelectionEventDirty()
+    {
+        _selectionEventDirty = false;
+    }
+    
+    private void fireSelectionEventIfDirty()
+    {
+        if (_selectionEventDirty)
+        {
+            fireSelectionEvent();
+        }
     }
 
     public void repaint(File indexedFile)
@@ -983,7 +1157,7 @@ public class POThumbList extends JPanel implements Scrollable
             if (guiItem instanceof ListItemGuiItem)
             {
                 ListItemGuiItem listItemGuiItem = (ListItemGuiItem)guiItem;
-                if (listItemGuiItem.item.getFile().equals(indexedFile))
+                if (listItemGuiItem.getItem().getFile().equals(indexedFile))
                 {
                     repaint(listItemGuiItem.area);
                     return;

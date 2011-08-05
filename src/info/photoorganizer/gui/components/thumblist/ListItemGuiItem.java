@@ -6,31 +6,26 @@ import java.awt.Rectangle;
 
 class ListItemGuiItem extends GuiItem
 {
-    public boolean isSelected = false;
-    public boolean isChecked = false;
-    public ListItem item = null;
+    private boolean _checked = false;
     
     private ListItemPainter _painter = null;
     
-    public ListItemGuiItem(ListItemPainter painter, Rectangle area)
+    private boolean _selected = false;
+
+    private ListItem item = null;
+
+    public ListItemGuiItem(ListItem item, ListItemPainter painter, Rectangle area, POThumbList owner)
     {
-        super(area);
+        super(area, owner);
+        this.item = item;
         _painter = painter;
+        this.area = area;
     }
 
-    @Override
-    public void paintImpl(Graphics2D g)
+    public ListItemGuiItem(ListItemPainter painter, Rectangle area, POThumbList owner)
     {
-        _painter.paint(item, isSelected, area.getSize(), g);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((item == null) ? 0 : item.hashCode());
-        return result;
+        super(area, owner);
+        _painter = painter;
     }
 
     @Override
@@ -52,13 +47,52 @@ class ListItemGuiItem extends GuiItem
             return false;
         return true;
     }
-
-    public ListItemGuiItem(ListItem item, ListItemPainter painter, Rectangle area)
+    public synchronized ListItem getItem()
     {
-        super(area);
-        this.item = item;
-        _painter = painter;
-        this.area = area;
+        return item;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((item == null) ? 0 : item.hashCode());
+        return result;
+    }
+    
+    public synchronized boolean isChecked()
+    {
+        return _checked;
+    }
+
+    public synchronized boolean isSelected()
+    {
+        return _selected;
+    }
+
+    @Override
+    public void paintImpl(Graphics2D g)
+    {
+        _painter.paint(item, _selected, area.getSize(), g);
+    }
+
+    public synchronized void setChecked(boolean checked)
+    {
+        _checked = checked;
+    }
+
+    public synchronized boolean setSelected(boolean selected)
+    {
+        boolean diff = _selected != selected;
+        
+        _selected = selected;
+        
+        if (diff)
+        {
+            owner.selectionHasChanged();
+        }
+        return diff;
     }
 
 }
