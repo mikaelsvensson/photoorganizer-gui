@@ -12,20 +12,20 @@ public class POViewPanelTest extends PODialog
     {
         super("test", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
 
-        POViewPaneInfo labelAlbert = new POViewPaneInfo(GuiComponentFactory.createLabel("Albert"), "A");
-        POViewPaneInfo labelBertha = new POViewPaneInfo(GuiComponentFactory.createLabel("Bertha"), "B");
-        POViewPaneInfo labelCeasar = new POViewPaneInfo(GuiComponentFactory.createLabel("Ceasar"), "C");
-        POViewPaneInfo labelDaniel = new POViewPaneInfo(GuiComponentFactory.createLabel("Daniel"), "D");
+        POViewPane labelAlbert = new POViewPaneInfo(GuiComponentFactory.createLabel("Albert"), "A");
+        POViewPane labelBertha = new POViewPaneInfo(GuiComponentFactory.createLabel("Bertha"), "B");
+        POViewPane labelCeasar = new POViewPaneInfo(GuiComponentFactory.createLabel("Ceasar"), "C");
+        POViewPane labelDaniel = new POViewPaneInfo(GuiComponentFactory.createLabel("Daniel"), "D");
         
         POViewPanel view = new POViewPanel();
         
         view.split(null, false);
         view.split(new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND }, true);
         
-        view.add(labelAlbert, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(labelBertha, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(labelCeasar, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(labelDaniel, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
+        view.add(labelAlbert.getComponent(), labelAlbert.getLabel(), new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
+        view.add(labelBertha.getComponent(), labelBertha.getLabel(), new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
+        view.add(labelCeasar.getComponent(), labelCeasar.getLabel(), new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
+        view.add(labelDaniel.getComponent(), labelDaniel.getLabel(), new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
         
         getContentPane().add(view, BorderLayout.CENTER);
     }

@@ -86,7 +86,7 @@ public class POViewPanel extends JPanel
         node.split(splitVertically);
     }
     
-    public Component add(POViewPaneInfo pane, Position[] path)
+    public Component add(POViewPane pane, Position[] path)
     {
         return add(pane.getComponent(), pane.getLabel(), path);
     }

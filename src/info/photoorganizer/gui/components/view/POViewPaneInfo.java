@@ -2,7 +2,7 @@ package info.photoorganizer.gui.components.view;
 
 import java.awt.Component;
 
-public class POViewPaneInfo
+public class POViewPaneInfo implements POViewPane
 {
     private Component _component = null;
     private String _label = null;
@@ -14,11 +14,13 @@ public class POViewPaneInfo
         _label = label;
     }
 
+    @Override
     public Component getComponent()
     {
         return _component;
     }
 
+    @Override
     public String getLabel()
     {
         return _label;

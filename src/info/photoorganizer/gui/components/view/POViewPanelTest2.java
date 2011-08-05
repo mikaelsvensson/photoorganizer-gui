@@ -3,20 +3,19 @@ package info.photoorganizer.gui.components.view;
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.frame.POFrame;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.thumblist.MetadataLoader;
 import info.photoorganizer.gui.components.thumblist.POThumbList;
 import info.photoorganizer.gui.components.tree.POFolderTree;
-import info.photoorganizer.gui.components.tree.POKeywordTree;
+import info.photoorganizer.gui.components.tree.POKeywordTreePanel;
 import info.photoorganizer.gui.components.tree.POTreeSelectionEvent;
 import info.photoorganizer.gui.components.tree.POTreeSelectionListener;
 import info.photoorganizer.gui.search.FolderContentMatchProvider;
 import info.photoorganizer.gui.search.Match;
 import info.photoorganizer.gui.search.MatchProvider;
+import info.photoorganizer.gui.search.SearchListener;
 import info.photoorganizer.gui.search.SearchResultEvent;
-import info.photoorganizer.gui.search.SearchResultListener;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.metadata.DefaultTagDefinition;
 import info.photoorganizer.metadata.KeywordTagDefinition;
@@ -97,31 +96,36 @@ public class POViewPanelTest2 extends POFrame
             public void selectionChanged(POTreeSelectionEvent<File> event)
             {
                 List<MatchProvider> prods = new ArrayList<MatchProvider>();
-                int i=0;
                 
                 for (File folder : event.getSelection())
                 {
                     prods.add(new FolderContentMatchProvider(folder, getDatabase()));
                 }
                 System.out.println(prods);
-                thumbList.clearItems();
+//                thumbList.clearItems();
                 if (null != _currentSearch)
                 {
                     _currentSearch.cancel(true);
 //                    System.err.println("--------------------------------------------------------------Cancelling " + _currentSearch);
                 }
                 _currentSearch = new info.photoorganizer.gui.search.Search(prods, null);
-                _currentSearch.addSearchResultListener(new SearchResultListener()
+                _currentSearch.addSearchResultListener(new SearchListener()
                 {
                     
                     @Override
-                    public void itemsAdded(SearchResultEvent event)
+                    public void searchResultFound(SearchResultEvent event)
                     {
                         for (Match match : event.getNewMatches())
                         {
                             System.out.println("Found " + match.getPhoto().getFile().getName());
                             thumbList.addItem(match.getPhoto().getFile());
                         }
+                    }
+
+                    @Override
+                    public void searchStarted(SearchResultEvent event)
+                    {
+                        thumbList.clearItems();
                     }
                 });
                 
@@ -170,11 +174,8 @@ public class POViewPanelTest2 extends POFrame
 //                });
         folderTree.setPreferredSize(new Dimension(200, 100));
         
-//        POViewPaneInfo labelAlbert = new POViewPaneInfo(createLabel("Albert"), "A");
-        POViewPaneInfo treeFolders = new POViewPaneInfo(folderTree, "Folders");
-//        POViewPaneInfo labelCeasar = new POViewPaneInfo(createLabel("Ceasar"), "C");
         
-        POKeywordTree keywordTree = new POKeywordTree(getDatabase());
+        POKeywordTreePanel keywordTree = new POKeywordTreePanel(getDatabase(), true);
         keywordTree.addSelectionListener(new POTreeSelectionListener<KeywordTagDefinition>()
         {
             @Override
@@ -188,11 +189,9 @@ public class POViewPanelTest2 extends POFrame
             }
         });
         
-        POViewPaneInfo treeKeywords = new POViewPaneInfo(keywordTree, "Keywords");
         JPanel p = new JPanel(new BorderLayout());
         p.add(new JScrollPane(thumbList), BorderLayout.CENTER);
         p.setPreferredSize(new Dimension(300, 200));
-        POViewPaneInfo images = new POViewPaneInfo(p, "Images");
         final POTagField<KeywordTagDefinition> tagField = GuiComponentFactory.createTagField(new KeywordTagDefinition[] {}, 20, getKeywordWordprovider());
         tagField.addFocusListener(new FocusListener()
         {
@@ -231,19 +230,18 @@ public class POViewPanelTest2 extends POFrame
                 
             }
         });
-        POViewPaneInfo keywordsField = new POViewPaneInfo(tagField, "Keyword");
         
         POViewPanel view = new POViewPanel();
         
         view.split(null, false);
         view.split(new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND }, true);
         
-        view.add(treeFolders, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
+        view.add(folderTree, "Folders", new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
 //        view.add(labelAlbert, new Position[] { Position.LEFT_OR_TOP_OR_FIRST } );
-        view.add(keywordsField, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
+        view.add(tagField, "Keyword", new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.LEFT_OR_TOP_OR_FIRST } );
         
-        view.add(images, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
-        view.add(treeKeywords, new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
+        view.add(p, "Images", new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
+        view.add(keywordTree, "Keywords", new Position[] { Position.RIGHT_OR_BOTTOM_OR_SECOND, Position.RIGHT_OR_BOTTOM_OR_SECOND } );
         
         getContentPane().add(view, BorderLayout.CENTER);
         
