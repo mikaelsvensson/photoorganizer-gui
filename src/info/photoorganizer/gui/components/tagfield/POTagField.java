@@ -1,7 +1,9 @@
 package info.photoorganizer.gui.components.tagfield;
 
+import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.Keys;
+import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.WordInfo;
 
@@ -14,6 +16,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -35,6 +38,8 @@ import javax.swing.text.BadLocationException;
 
 public class POTagField<T> extends JTextField implements DocumentListener, CaretListener, KeyListener, FocusListener, ListSelectionListener
 {
+    private static final Logger L = Logging.getLogger(POTagField.class);
+    
     private class SuggestionItem
     {
         private T object = null;
@@ -240,11 +245,11 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
         {
             if (caretPosition >= wordInfo.getPositionOfFirstCharacter() && caretPosition <= wordInfo.getPositionOfLastCharacter() + 1)
             {
-                System.err.println("When the caret is positioned right before character " + (caretPosition+1) + " it touches the tag '" + wordInfo.getWord() + "'.");
+                L.finer("When the caret is positioned right before character " + (caretPosition+1) + " it touches the tag '" + wordInfo.getWord() + "'.");
                 return wordInfo;
             }
         }
-        System.err.println("When the caret is positioned right before character " + (caretPosition+1) + "it does not touch any tag.");
+        L.finer("When the caret is positioned right before character " + (caretPosition+1) + "it does not touch any tag.");
         return null;
     }
     public POTagFieldSuggestionProvider<T> getWordProvider()
@@ -477,7 +482,7 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
             sb.append(_wordSeparator);
         }
         sb.append(after);
-        System.err.println("Replacing '" + sentence + "' with '" + sb.toString() + "'");
+        L.finer("Replacing '" + sentence + "' with '" + sb.toString() + "'");
         setText(sb.toString());
         return startOfReplacement;
     }
@@ -509,7 +514,7 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
 //                }
 //                else
 //                {
-                    System.err.println("Displaying menu at " + x + " " + getHeight());
+                    L.finer("Displaying menu at " + x + " " + getHeight());
 //                    menu.show(POTagField.this, x, getHeight());
                     
                     JDialog f = getSuggestionsFrame(suggestions, selectFirstSuggestion ? 0 : -1);
@@ -603,7 +608,7 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
         final Object object = _suggestionlist.getSelectedValue();
         if (null != object)
         {
-            System.err.println("Item '" + object.toString() + "' has been selected.");
+            L.finer("Item '" + object.toString() + "' has been selected.");
             SwingUtilities.invokeLater(new Runnable()
             {
                 @Override
@@ -616,7 +621,7 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
         }
         else
         {
-            System.err.println("No item has been selected.");
+            L.finer("No item has been selected.");
         }
     }
 
@@ -625,7 +630,7 @@ public class POTagField<T> extends JTextField implements DocumentListener, Caret
         WordInfo wordInfo = getWord(caretPosition, false);
         int caretPositionInWord = caretPosition - wordInfo.getPositionOfFirstCharacter()/* + 1*/;
         
-        System.err.println("Caret is at character " + (caretPosition + 1) + " in the sentence and at " + (caretPositionInWord + 1) + " in the word.");
+        L.finer("Caret is at character " + (caretPosition + 1) + " in the sentence and at " + (caretPositionInWord + 1) + " in the word.");
         
         int startOfReplacement = replaceWord(caretPosition, replacementWord, false);
         int quotationOffset = replacementWord.indexOf(_wordSeparator) >= 0 ? 1 : 0;

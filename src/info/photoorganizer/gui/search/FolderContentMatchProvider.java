@@ -1,14 +1,18 @@
 package info.photoorganizer.gui.search;
 
 import info.photoorganizer.database.Database;
+import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
+import info.photoorganizer.gui.shared.Logging;
 
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 public class FolderContentMatchProvider implements MatchProvider
 {
+    private static final Logger L = Logging.getLogger(MatchProvider.class);
 
     private class FolderContentMatchIterator implements Iterator<Match>
     {
@@ -61,7 +65,7 @@ public class FolderContentMatchProvider implements MatchProvider
         super();
         _folder = folder;
         _database = database;
-        System.err.println("FolderContentMatchProvider for " + _folder + " has been CREATED.");
+        L.fine("FolderContentMatchProvider for " + _folder + " has been CREATED.");
     }
 
     @Override

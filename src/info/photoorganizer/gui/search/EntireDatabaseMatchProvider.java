@@ -1,12 +1,17 @@
 package info.photoorganizer.gui.search;
 
 import info.photoorganizer.database.Database;
+import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
+import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.Photo;
 
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 public class EntireDatabaseMatchProvider implements MatchProvider
 {
+    private static final Logger L = Logging.getLogger(MatchProvider.class);
+    
     private class EntireDatabaseMatchIterator implements Iterator<Match>
     {
 
