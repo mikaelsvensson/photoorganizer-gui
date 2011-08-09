@@ -1,7 +1,6 @@
 package info.photoorganizer.gui;
 
 import info.photoorganizer.gui.components.PORadioButton;
-import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.frame.POUserInterfaceTheme;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.tagfield.POTagFieldSuggestionProvider;
@@ -32,6 +31,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -62,11 +63,16 @@ public class GuiComponentFactory
         return panel;
     }
 
-    public static JPanel createBoxLayoutPanel(boolean horizontal, Component... components)
+    public static JPanel createBoxLayoutPanel(boolean horizontal, JComponent... components)
     {
         JPanel panel = new JPanel();
         BoxLayout layout = new BoxLayout(panel, horizontal ? BoxLayout.LINE_AXIS : BoxLayout.PAGE_AXIS);
         panel.setLayout(layout);
+        
+        for (JComponent component : components)
+        {
+            component.setAlignmentX(Component.LEFT_ALIGNMENT);
+        }
         
         addComponentsToContainer(panel, components);
         
@@ -130,7 +136,7 @@ public class GuiComponentFactory
         return l;
     }
 
-    public static <T extends Enum<?>> ButtonGroup createButtonGroup(Class<T> cls, POActionListener actionListener)
+    public static <T extends Enum<?>> ButtonGroup createEnumRadioButtonGroup(Class<T> cls, POActionListener actionListener)
     {
         ButtonGroup group = new ButtonGroup();
         for (T e : cls.getEnumConstants())
@@ -199,11 +205,41 @@ public class GuiComponentFactory
     };
     public static void initDefaultLookAndFeel()
     {
-        POUserInterfaceTheme.init();
-        POUserInterfaceTheme.applyTheme(POUserInterfaceTheme.LIGHT_GREY);
+        if (!lookAndFeelInitialised)
+        {
+//            try
+//            {
+//                UIManager.setLookAndFeel("com.easynth.lookandfeel.EaSynthLookAndFeel");
+//            }
+//            catch (ClassNotFoundException e)
+//            {
+//                e.printStackTrace();
+//            }
+//            catch (InstantiationException e)
+//            {
+//                e.printStackTrace();
+//            }
+//            catch (IllegalAccessException e)
+//            {
+//                e.printStackTrace();
+//            }
+//            catch (UnsupportedLookAndFeelException e)
+//            {
+//                e.printStackTrace();
+//            }
+            POUserInterfaceTheme.init();
+            POUserInterfaceTheme.applyTheme(POUserInterfaceTheme.LIGHT_GREY);
+            lookAndFeelInitialised = true;
+        }
     }
+    
+    public static boolean lookAndFeelInitialised = false;
 
     public static void show(final Window frame)
+    {
+        show(frame, true);
+    }
+    public static void show(final Window frame, final boolean pack)
     {
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -211,7 +247,10 @@ public class GuiComponentFactory
             @Override
             public void run()
             {
-                frame.pack();
+                if (pack)
+                {
+                    frame.pack();
+                }
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
             }
