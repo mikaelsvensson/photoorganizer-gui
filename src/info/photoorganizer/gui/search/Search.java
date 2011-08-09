@@ -12,18 +12,28 @@ import javax.swing.SwingWorker;
 
 public class Search extends SwingWorker<Void, Match>
 {
-    private Event<SearchResultListener, SearchResultEvent> _searchResultEvent = new Event<SearchResultListener, SearchResultEvent>(
-            new EventExecuter<SearchResultListener, SearchResultEvent>()
+    private Event<SearchListener, SearchResultEvent> _searchResultFound = new Event<SearchListener, SearchResultEvent>(
+            new EventExecuter<SearchListener, SearchResultEvent>()
             {
                 @Override
-                public void fire(SearchResultListener listener, SearchResultEvent event)
+                public void fire(SearchListener listener, SearchResultEvent event)
                 {
-                    listener.itemsAdded(event);
+                    listener.searchResultFound(event);
+                }
+            });
+    private Event<SearchListener, SearchResultEvent> _searchStartedEvent = new Event<SearchListener, SearchResultEvent>(
+            new EventExecuter<SearchListener, SearchResultEvent>()
+            {
+                @Override
+                public void fire(SearchListener listener, SearchResultEvent event)
+                {
+                    listener.searchStarted(event);
                 }
             });
     
     private List<MatchProvider> _providers = new ArrayList<MatchProvider>();
     private SearchCriterion _criterion = null;
+    private boolean _firedStartedEvent = false;
 
     @Override
     protected Void doInBackground() throws Exception
@@ -65,16 +75,34 @@ public class Search extends SwingWorker<Void, Match>
     @Override
     protected void process(List<Match> chunks)
     {
-        _searchResultEvent.fire(new SearchResultEvent(this, chunks));
+        if (!_firedStartedEvent)
+        {
+            _searchStartedEvent.fire(new SearchResultEvent(this));
+            _firedStartedEvent = true;
+        }
+        _searchResultFound.fire(new SearchResultEvent(this, chunks));
     }
     
-    public void addSearchResultListener(SearchResultListener listener)
+    public void addSearchResultListener(SearchListener listener)
     {
-        _searchResultEvent.addListener(listener);
+        _searchResultFound.addListener(listener);
+        _searchStartedEvent.addListener(listener);
     }
     
-    public void removeSearchResultListener(SearchResultListener listener)
+    public void removeSearchResultListener(SearchListener listener)
     {
-        _searchResultEvent.removeListener(listener);
+        _searchResultFound.removeListener(listener);
+        _searchStartedEvent.removeListener(listener);
+    }
+
+    public List<SearchListener> getListeners()
+    {
+        return _searchResultFound.getListeners();
+    }
+    
+    public void removeSearchResultListeners()
+    {
+        _searchResultFound.removeAllListeners();
+        _searchStartedEvent.removeAllListeners();
     }
 }
