@@ -1,7 +1,5 @@
 package info.photoorganizer.gui.components.frame;
 
-import java.awt.Container;
-
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseManager;
 import info.photoorganizer.gui.components.tagfield.POTagFieldSuggestionProvider;
@@ -10,6 +8,9 @@ import info.photoorganizer.gui.shared.KeywordSuggestionProvider;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.config.ConfigurationProperty;
+
+import java.awt.Container;
+import java.awt.Frame;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -41,6 +42,7 @@ public class POFrame extends JFrame
     {
         return (JPanel) getContentPane();
     }
+    
     protected POFrame(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
     {
         this(owner, title, modal, -1, -1, defaultCloseOperation, root);
@@ -56,6 +58,10 @@ public class POFrame extends JFrame
         {
             setSize(width, height);
 //            recalculateContentPaneSize();
+        }
+        else
+        {
+            setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
         }
     }
     
