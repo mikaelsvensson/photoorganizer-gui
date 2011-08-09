@@ -4,6 +4,11 @@ import javax.swing.AbstractAction;
 
 public abstract class POAction extends AbstractAction
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public void setName(String name)
     {
         putValue(NAME, name);
