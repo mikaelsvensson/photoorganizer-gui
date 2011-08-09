@@ -214,7 +214,7 @@ public class EditKeywordsFrame extends PODialog
         {
             Database database = getDatabase();
             
-            _keywordsTree = new POTreePanel(new POKeywordTreeModel(database.getRootKeyword()));
+            _keywordsTree = new POTreePanel(new POKeywordTreeModel(database.getRootKeyword()), true);
             _keywordsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
             //_keywordsTree.setRootVisible(false);
             _keywordsTree.setEditable(true);
@@ -327,7 +327,7 @@ public class EditKeywordsFrame extends PODialog
             CommandManager.getInstance().doAction(cmd);
             
             POTreePanel keywordsTree = getKeywordsTree();
-            if (cmd.getParentBeforeRemoval() != null && cmd.getParentBeforeRemoval() != keywordsTree.getTreeModel().getRoot())
+            if (cmd.getParentBeforeRemoval() != null && cmd.getParentBeforeRemoval() != keywordsTree.getModel().getRoot())
             {
                 keywordsTree.setSelectionPath(new TreePath(cmd.getParentBeforeRemoval().getPath()));
             }
