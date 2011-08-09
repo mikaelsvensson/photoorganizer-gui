@@ -8,5 +8,13 @@ import java.io.File;
 
 public interface ImageLoader
 {
-    Image getImage(File file, Dimension preferredSize, Orientation imageOrientationInFile);
+    /**
+     * Returns an image representation of the specified file.
+     * 
+     * @param file file to create image for
+     * @param size dimension of returned image
+     * @param imageOrientationInFile information about how image data is stored in the specified file
+     * @return
+     */
+    Image getImage(File file, Dimension size/*, Orientation imageOrientationInFile*/);
 }

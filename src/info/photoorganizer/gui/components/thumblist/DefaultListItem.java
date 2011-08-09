@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
+import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.DefaultTagDefinition;
 import info.photoorganizer.metadata.IntegerNumberTag;
 import info.photoorganizer.metadata.IntegerNumberTagDefinition;
@@ -11,11 +12,14 @@ import java.awt.Image;
 import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import org.omg.CORBA._PolicyStub;
 
 public class DefaultListItem implements ListItem
 {
+    private static final Logger L = Logging.getLogger(POThumbList.class);
+    
     @Override
     public int hashCode()
     {
@@ -50,7 +54,7 @@ public class DefaultListItem implements ListItem
     private Map<Object, Object> _metadata = null;
     private Image _image = null; 
     private Dimension _imagePreferredSize = null;
-    private Orientation _orientation = null;
+//    private Orientation _orientation = null;
 
     public DefaultListItem(File file, POThumbList owner)
     {
@@ -92,20 +96,20 @@ public class DefaultListItem implements ListItem
     {
         _metadata = metadata;
         
-        _orientation = null;
-        for (Entry<Object, Object> entry : metadata.entrySet())
-        {
-            if (entry.getKey() instanceof IntegerNumberTagDefinition && entry.getValue() instanceof Integer)
-            {
-                IntegerNumberTagDefinition def = (IntegerNumberTagDefinition) entry.getKey();
-                Integer value = (Integer) entry.getValue();
-                if (def.getId().equals(DefaultTagDefinition.ORIENTATION.getId()))
-                {
-                    _orientation = Orientation.fromExifValue(value);
-                }
-            }
-            
-        }
+//        _orientation = null;
+//        for (Entry<Object, Object> entry : metadata.entrySet())
+//        {
+//            if (entry.getKey() instanceof IntegerNumberTagDefinition && entry.getValue() instanceof Integer)
+//            {
+//                IntegerNumberTagDefinition def = (IntegerNumberTagDefinition) entry.getKey();
+//                Integer value = (Integer) entry.getValue();
+//                if (def.getId().equals(DefaultTagDefinition.ORIENTATION.getId()))
+//                {
+//                    _orientation = Orientation.fromExifValue(value);
+//                }
+//            }
+//            
+//        }
     }
 
     @Override
@@ -117,7 +121,7 @@ public class DefaultListItem implements ListItem
         }
         else if (!_imagePreferredSize.equals(preferredSize))
         {
-            System.err.println("---- getImage " + _imagePreferredSize + " != " + preferredSize);
+            L.fine("getImage " + _imagePreferredSize + " != " + preferredSize);
             _owner.addImageTask(this, preferredSize, true);
         }
         return _image;
@@ -127,13 +131,13 @@ public class DefaultListItem implements ListItem
     {
         _image = image;
         _imagePreferredSize = preferredSize;
-        System.err.println("---- setImage " + _imagePreferredSize);
+        L.fine("setImage " + _imagePreferredSize);
     }
 
-    @Override
-    public Orientation getOrientation()
-    {
-        return _orientation;
-    }
+//    @Override
+//    public Orientation getOrientation()
+//    {
+//        return _orientation;
+//    }
 
 }

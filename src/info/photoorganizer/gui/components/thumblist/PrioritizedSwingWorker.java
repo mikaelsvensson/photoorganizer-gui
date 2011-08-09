@@ -85,7 +85,7 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
         @Override
         public String toString()
         {
-            return "Task " + _num;
+            return _task.toString() +  "(task #" + _num + ")";
         }
 
         private PrioritizedSwingWorker getOuterType()
@@ -98,6 +98,7 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
     {
         synchronized (_tasks)
         {
+            boolean replaced = false;
             Task prioTask = new Task(task, priority);
             if (removeExisting)
             {
@@ -107,13 +108,22 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
                     if (iterator.next()._task.equals(prioTask._task))
                     {
                         iterator.remove();
+                        replaced = true;
                         break;
                     }
                 }
             }
             _tasks.add(prioTask);
             _tasks.notifyAll();
-            L.finer("ADDED " + prioTask + " (" + _tasks.size() + " items queued)");
+            L.finer((replaced ? "REPLACED " : "ADDED ") + prioTask + " (" + _tasks.size() + " items queued)");
+        }
+    }
+    public void clearTasks()
+    {
+        synchronized (_tasks)
+        {
+            _tasks.clear();
+            L.finer("REMOVED ALL TASKS");
         }
     }
 
@@ -158,6 +168,7 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
         {
             if (isCancelled())
             {
+                L.fine("CANCELLED");
                 break;
             }
             L.fine("PERFORMING " + task);
@@ -184,7 +195,7 @@ public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends Swing
             }
             if (!_tasks.isEmpty())
             {
-                res = _tasks.last();
+                res = _tasks.first();
                 L.fine("PICKING " + res + " (" + _tasks.size() + " items queued)");
                 _tasks.remove(res);
             }

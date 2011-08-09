@@ -28,13 +28,13 @@ public class SquarePainter implements ListItemPainter
         g.fill(r);
         
         g.setColor(Color.BLACK);
+        FontMetrics fontMetrics = g.getFontMetrics();
         if (hasMetadata)
         {
-            g.drawString(metadata.toString(), 0, itemSize.height - 40);
+            g.drawString(metadata.toString(), 0, itemSize.height - fontMetrics.getHeight());
         }
         
-        FontMetrics fontMetrics = g.getFontMetrics();
-        Dimension imageSize = new Dimension(itemSize.width, itemSize.height-fontMetrics.getHeight());
+        Dimension imageSize = new Dimension(itemSize.width, itemSize.height - fontMetrics.getHeight()*2);
         Image img = item.getImage(imageSize);
         if (img != null)
         {
@@ -44,6 +44,10 @@ public class SquarePainter implements ListItemPainter
             {
                 // Acceptable image size
                 g.drawImage(img, 0, 0, null);
+            }
+            else
+            {
+                g.drawImage(img, 0, 0, imageSize.width, imageSize.height, null);
             }
         }
         

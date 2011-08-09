@@ -28,6 +28,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import javax.swing.JPanel;
@@ -67,6 +70,8 @@ public class POThumbList extends JPanel implements Scrollable
         _imageLoader = imageLoader;
     }
 
+    private ExecutorService _executor = Executors.newCachedThreadPool();
+    
     private ImageLoader _imageLoader = null;
     private Event<SelectionEventListener, SelectionEvent> _selectionEvent = new Event<SelectionEventListener, SelectionEvent>(
             new EventExecuter<SelectionEventListener, SelectionEvent>()
@@ -109,11 +114,23 @@ public class POThumbList extends JPanel implements Scrollable
         }
         
         @Override
-        public DefaultListItem call() throws Exception
+        public DefaultListItem call()/* throws Exception*/
         {
             if (_item.getMetadata() == null)
             {
-                _item.setMetadata(_metadataLoader.getMetadata(_item.getFile()));
+                try
+                {
+                    _item.setMetadata(_metadataLoader.getMetadata(_item.getFile()));
+                }
+                catch (Exception e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+//                if (_item.getOrientation() != null)
+//                {
+//                    repaint(_item.getFile());
+//                }
             }
             return _item;
         }
@@ -134,6 +151,12 @@ public class POThumbList extends JPanel implements Scrollable
             return _item.getFile().hashCode();
         }
         
+        @Override
+        public String toString()
+        {
+            return "Get metadata for " + _item.getFile().getAbsolutePath();
+        }
+        
     }
     
     private class ImageLoaderCallable implements Callable<DefaultListItem>
@@ -149,12 +172,39 @@ public class POThumbList extends JPanel implements Scrollable
         }
         
         @Override
-        public DefaultListItem call() throws Exception
+        public DefaultListItem call()/* throws Exception*/
         {
 //            Image image = _item.getImage(_preferredSize);
 //            if (image == null)
 //            {
-                _item.setImage(_imageLoader.getImage(_item.getFile(), _preferredSize, _item.getOrientation()), _preferredSize);
+//            if (_item.getOrientation() != null)
+//            {
+                try
+                {
+                    Image image = _imageLoader.getImage(_item.getFile(), _preferredSize/*, _item.getOrientation()*/);
+                    if (null == image)
+                    {
+                        image = new BufferedImage(_preferredSize.width, _preferredSize.height, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D graphics = (Graphics2D) image.getGraphics();
+                        graphics.setColor(Color.RED);
+                        graphics.fill(new Rectangle(_preferredSize));
+                        graphics.setColor(Color.BLACK);
+                        graphics.drawString("No image", 5, 25);
+                        graphics.dispose();
+                    }
+                    _item.setImage(image, _preferredSize);
+                }
+                catch (Exception e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+//            }
+//            else
+//            {
+//                BufferedImage errorImg = new BufferedImage(_preferredSize.width, _preferredSize.height, BufferedImage.TYPE_INT_ARGB);
+//                _item.setImage(errorImg, _preferredSize);
+//            }
 //            }
             return _item;
         }
@@ -173,6 +223,12 @@ public class POThumbList extends JPanel implements Scrollable
         public int hashCode()
         {
             return _item.getFile().hashCode();
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Get image " + _item.getFile().getAbsolutePath() + " " + _preferredSize.width + "x" + _preferredSize.height;
         }
         
     }
@@ -211,14 +267,15 @@ public class POThumbList extends JPanel implements Scrollable
                         }
                         else
                         {
-                            L.fine("Could not locate " + chunk + " on screen! Perhaps we are trying to process a task");
+                            L.fine("Could not locate " + chunk + " on screen! Perhaps we are trying to process a task!?");
                         }
                     }
                     repaint(area);
                 }
                 
             };
-            _metadataWorker.execute();
+            _executor.submit(_metadataWorker);
+//            _metadataWorker.execute();
         }
         return _metadataWorker;
     }
@@ -237,7 +294,7 @@ public class POThumbList extends JPanel implements Scrollable
         }
         
     }
-    public final static String ACTIONNAME_FOCUS_DOWN= "focusDown";
+    public final static String ACTIONNAME_FOCUS_DOWN = "focusDown";
     public final static String ACTIONNAME_FOCUS_NEXT = "focusNext";
     public final static String ACTIONNAME_FOCUS_NEXT_GROUP = "focusNextGroup";
     public final static String ACTIONNAME_FOCUS_PREVIOUS = "focusPrevious";
@@ -355,7 +412,7 @@ public class POThumbList extends JPanel implements Scrollable
                     {
                         _zoom = 100;
                     }
-                    System.out.println("Zoom level: " + _zoom);
+                    L.info("Zoom level: " + _zoom);
                     scheduleRelayout();
                 }
             }
@@ -967,7 +1024,7 @@ public class POThumbList extends JPanel implements Scrollable
         int visibleWidth = visibleSize.width - insets.left - insets.right;
         int visibleHeight = visibleSize.height - insets.top - insets.bottom;
         
-        long itemArea = (visibleHeight * visibleWidth * _zoom * _zoom) / (10000); //(long) (visibleHeight * visibleWidth * zoomPercent);
+        long itemArea = (1l * visibleHeight * visibleWidth * _zoom * _zoom) / (10000); //(long) (visibleHeight * visibleWidth * zoomPercent);
         
         if (itemArea == 0)
         {
@@ -980,8 +1037,16 @@ public class POThumbList extends JPanel implements Scrollable
 
         double itemWidth = Math.sqrt(itemAspectRatio * itemArea);
         double itemHeight = Math.sqrt(itemArea * itemAspectRatio);
-        int itemsWide =  (int) Math.ceil(visibleWidth / itemWidth);
-        itemWidth = visibleWidth / itemsWide;
+        int itemsWide = (int) Math.max(1, visibleWidth / itemWidth);
+        try
+        {
+            itemWidth = visibleWidth / itemsWide;
+        }
+        catch (ArithmeticException e)
+        {
+            L.fine("Could not do this: " + visibleWidth +"/" + itemsWide);
+            e.printStackTrace();
+        }
         itemHeight = itemWidth / itemAspectRatio;
 
         for (Entry<ListItemGroupGuiItem, List<ListItemGuiItem>> entry : _guiItemMap.entrySet())
@@ -1075,7 +1140,7 @@ public class POThumbList extends JPanel implements Scrollable
     {
         if (_items == null)
         {
-            _items = new ArrayList<DefaultListItem>();
+            clearItems();
         }
         _items.add(new DefaultListItem(file, this));
         scheduleRegroup();
@@ -1083,13 +1148,16 @@ public class POThumbList extends JPanel implements Scrollable
     
     public synchronized void clearItems()
     {
+        getWorker().clearTasks();
+        
         _items = new ArrayList<DefaultListItem>();
         scheduleRegroup();
     }
 
     public synchronized void setItems(Iterable<File> items)
     {
-        _items = new ArrayList<DefaultListItem>();
+        
+        clearItems();
         
         Iterator<File> i = items.iterator();
         while (i.hasNext())
