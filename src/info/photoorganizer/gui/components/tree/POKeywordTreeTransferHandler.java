@@ -1,6 +1,8 @@
 package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.DatabaseStorageException;
+import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
+import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
 import java.awt.datatransfer.Transferable;
@@ -8,6 +10,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JTree;
@@ -20,6 +23,7 @@ import javax.swing.tree.TreePath;
  */
 public class POKeywordTreeTransferHandler extends TransferHandler
 {
+    private static final Logger L = Logging.getLogger(POKeywordTree.class);
     
     /**
      * 
@@ -31,7 +35,13 @@ public class POKeywordTreeTransferHandler extends TransferHandler
     public POKeywordTreeTransferHandler(POTreePanel<POKeywordTreeModel, KeywordTagDefinition> poTree)
     {
         super();
-        _tree = poTree.getTreeModel();
+        _tree = poTree.getModel();
+    }
+    
+    public POKeywordTreeTransferHandler(POTree<POKeywordTreeModel, KeywordTagDefinition> poTree)
+    {
+        super();
+        _tree = poTree.getModel();
     }
 
     @Override
@@ -79,7 +89,7 @@ public class POKeywordTreeTransferHandler extends TransferHandler
         if (c instanceof POTree)
         {
             List<KeywordTagDefinition> selection = ((POTree)c).getSelection();
-            System.err.println("createTransferable using this selection: " + selection.toString());
+            L.finer("createTransferable using this selection: " + selection.toString());
             return new POTransferableUUIDList(selection);
         }
         else

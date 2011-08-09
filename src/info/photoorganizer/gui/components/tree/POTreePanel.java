@@ -9,6 +9,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.DropMode;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -31,9 +32,7 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
      */
     private static final long serialVersionUID = 1L;
 
-    protected JScrollPane _scrollPane = null;
-
-    protected POTree<N> _tree = null;
+    protected POTree<T, N> _tree = null;
 
     public void addSelectionListener(POTreeSelectionListener<N> listener)
     {
@@ -45,22 +44,28 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
         _tree.removeSelectionListener(listener);
     }
 
-    public POTreePanel(T treeModel)
+    public POTreePanel(T treeModel, boolean scrollable)
     {
         super();
         //_selectedUUIDs = new ArrayList<UUID>();
         
-        _tree = new POTree<N>(treeModel);
+        _tree = new POTree<T, N>(treeModel);
         
         //_tree.addTreeSelectionListener(this);
         _tree.setModel(treeModel);
         _tree.setDragEnabled(true);
         _tree.setRootVisible(false);
         
-        _scrollPane = new JScrollPane(_tree);
+        //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
-        setLayout(new BorderLayout());
-        add(_scrollPane, BorderLayout.CENTER);
+        if (scrollable)
+        {
+            add(new JScrollPane(_tree)/*, BorderLayout.CENTER*/);
+        }
+        else
+        {
+            add(_tree/*, BorderLayout.CENTER*/);
+        }
     }
 
     public void addFocusListener(FocusListener l)
@@ -118,7 +123,7 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
         return _tree.getSelectionPaths();
     }
 
-    public T getTreeModel()
+    public T getModel()
     {
         return (T) _tree.getModel();
     }

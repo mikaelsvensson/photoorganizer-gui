@@ -13,11 +13,11 @@ import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.tree.TreeModel;
 
-public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefinition>
+public class POKeywordTreePanel extends POTreePanel<POKeywordTreeModel, KeywordTagDefinition>
 {
     private static final Logger L = Logging.getLogger(POKeywordTree.class);
+    
     /**
      * 
      */
@@ -37,17 +37,11 @@ public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefiniti
         }
     };
 
-    public POKeywordTree(Database database)
+    public POKeywordTreePanel(Database database, boolean scrollable)
     {
-        super(new POKeywordTreeModel(database));
+        super(new POKeywordTreeModel(database), scrollable);
         init();
     }
-
-//    @Override
-//    public POKeywordTreeModel getModel()
-//    {
-//        return (POKeywordTreeModel) super.getModel();
-//    }
 
     public JPopupMenu getPopupMenu()
     {
@@ -86,7 +80,7 @@ public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefiniti
             {
                 if (e.isPopupTrigger())
                 {
-                    getPopupMenu().show(POKeywordTree.this, e.getX(), e.getY());
+                    getPopupMenu().show(POKeywordTreePanel.this, e.getX(), e.getY());
                 }
             }
             
@@ -95,7 +89,7 @@ public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefiniti
             {
                 if (e.isPopupTrigger())
                 {
-                    getPopupMenu().show(POKeywordTree.this, e.getX(), e.getY());
+                    getPopupMenu().show(POKeywordTreePanel.this, e.getX(), e.getY());
                 }
             }
         });
@@ -108,8 +102,6 @@ public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefiniti
 //            }
 //        });
         setTransferHandler(new POKeywordTreeTransferHandler(this));
-        setDragEnabled(true);
-        setRootVisible(false);
     }
     
 //    private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)

@@ -6,7 +6,7 @@ import java.io.File;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-public class POFolderTree extends POTreePanel<POFolderTreeModel, File>
+public class POFolderTree extends POTree<POFolderTreeModel, File>
 {
     
     private class FolderIconRenderer extends DefaultTreeCellRenderer
@@ -42,7 +42,8 @@ public class POFolderTree extends POTreePanel<POFolderTreeModel, File>
     public POFolderTree(POFolderTreeModel treeModel)
     {
         super(treeModel);
-        _tree.setCellRenderer(new FolderIconRenderer());
+        setCellRenderer(new FolderIconRenderer());
+        setRootVisible(false);
     }
 
 }

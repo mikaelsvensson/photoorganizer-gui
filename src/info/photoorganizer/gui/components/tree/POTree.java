@@ -16,26 +16,32 @@ import javax.swing.tree.TreePath;
 /**
  * @author Mikael
  *
- * @param <T> the type of object used to represent tree nodes
+ * @param <N> the type of object used to represent tree nodes
  */
-class POTree<T> extends JTree implements TreeSelectionListener
+class POTree<T extends TreeModel, N> extends JTree implements TreeSelectionListener
 {
-    private Event<POTreeSelectionListener<T>, POTreeSelectionEvent<T>> _selectionEvent = new Event<POTreeSelectionListener<T>, POTreeSelectionEvent<T>>(
-            new EventExecuter<POTreeSelectionListener<T>, POTreeSelectionEvent<T>>()
+    @Override
+    public T getModel()
+    {
+        return (T) super.getModel();
+    }
+
+    private Event<POTreeSelectionListener<N>, POTreeSelectionEvent<N>> _selectionEvent = new Event<POTreeSelectionListener<N>, POTreeSelectionEvent<N>>(
+            new EventExecuter<POTreeSelectionListener<N>, POTreeSelectionEvent<N>>()
             {
                 @Override
-                public void fire(POTreeSelectionListener<T> listener, POTreeSelectionEvent<T> event)
+                public void fire(POTreeSelectionListener<N> listener, POTreeSelectionEvent<N> event)
                 {
                     listener.selectionChanged(event);
                 }
             });
     
-    public void addSelectionListener(POTreeSelectionListener<T> listener)
+    public void addSelectionListener(POTreeSelectionListener<N> listener)
     {
         _selectionEvent.addListener(listener);
     }
     
-    public void removeSelectionListener(POTreeSelectionListener<T> listener)
+    public void removeSelectionListener(POTreeSelectionListener<N> listener)
     {
         _selectionEvent.removeListener(listener);
     }
@@ -64,9 +70,9 @@ class POTree<T> extends JTree implements TreeSelectionListener
         }
     }
     
-    public List<T> getSelection()
+    public List<N> getSelection()
     {
-        ArrayList<T> _selection = new ArrayList<T>();
+        ArrayList<N> _selection = new ArrayList<N>();
         TreePath[] selectionPaths = getSelectionPaths();
         if (null != selectionPaths)
         {
@@ -74,7 +80,7 @@ class POTree<T> extends JTree implements TreeSelectionListener
             {
                 try
                 {
-                    _selection.add((T) path.getLastPathComponent());
+                    _selection.add((N) path.getLastPathComponent());
                 }
                 catch (ClassCastException ex)
                 {
@@ -110,6 +116,6 @@ class POTree<T> extends JTree implements TreeSelectionListener
 //            }
 //        }
 //        System.err.println("Selection: " + _selection.toString());
-        _selectionEvent.fire(new POTreeSelectionEvent<T>(this, getSelection()));
+        _selectionEvent.fire(new POTreeSelectionEvent<N>(this, getSelection()));
     }
 }
