@@ -2,11 +2,8 @@ package info.photoorganizer.gui.components.frame;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseManager;
-import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.tagfield.POTagFieldSuggestionProvider;
 import info.photoorganizer.gui.shared.CloseOperation;
-import info.photoorganizer.gui.shared.FlowLayoutAlignment;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.KeyboardShortcutDefinition;
 import info.photoorganizer.gui.shared.Keys;
@@ -16,19 +13,14 @@ import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.config.ConfigurationProperty;
 
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
 
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 public abstract class PODialog extends JDialog
