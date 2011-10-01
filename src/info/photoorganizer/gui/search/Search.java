@@ -36,20 +36,28 @@ public class Search extends SwingWorker<Void, Match>
     private boolean _firedStartedEvent = false;
 
     @Override
-    protected Void doInBackground() throws Exception
+    protected Void doInBackground()/* throws Exception*/
     {
-        for (MatchProvider provider : _providers)
+        try
         {
-            Iterator<Match> items = provider.getItems();
-            while (items.hasNext() && !isCancelled())
+            for (MatchProvider provider : _providers)
             {
-                Match match = items.next();
-//                System.err.println("-------------------------------------------------------------- " + this + ".isCancelled()=" + isCancelled() + " when processing " + match);
-                if (_criterion.accept(match.getPhoto()))
+                Iterator<Match> items = provider.getItems();
+                while (items.hasNext() && !isCancelled())
                 {
-                    publish(match);
+                    Match match = items.next();
+//                System.err.println("-------------------------------------------------------------- " + this + ".isCancelled()=" + isCancelled() + " when processing " + match);
+                    if (_criterion.accept(match.getPhoto()))
+                    {
+                        publish(match);
+                    }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return null;
     }

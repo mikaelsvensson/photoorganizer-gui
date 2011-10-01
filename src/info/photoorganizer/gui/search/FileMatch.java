@@ -2,6 +2,7 @@ package info.photoorganizer.gui.search;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.metadata.Photo;
+import info.photoorganizer.util.config.ConfigurationProperty;
 
 import java.io.File;
 
@@ -23,7 +24,8 @@ public class FileMatch implements Match
         Photo photo = database.getPhoto(file);
         if (null == photo)
         {
-            photo = database.indexPhoto(file);
+            photo = database.indexPhoto(file, ConfigurationProperty.indexingConfigurationList.get());
+//            photo = database.indexPhoto(file, database.getIndexingConfigurations());
         }
         return photo;
     }
