@@ -14,16 +14,26 @@ import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.util.StringUtils;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,8 +41,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -56,7 +64,32 @@ public class GuiComponentFactory
         JPanel panel = new JPanel(new BorderLayout());
         return panel;
     }
-
+    
+    /*
+    public static <T extends Enum<?>> JPanel createEnumCardLayout(final Class<T> cls, T initialValue)
+    {
+        final CardLayout layout = new CardLayout();
+        final JPanel cards = new JPanel(layout);
+        JPanel panel = createBoxLayoutPanel(false, createEnumDropDownList(cls, initialValue, new POActionListener()
+        {
+            
+            @Override
+            public void actionPerformedImpl(ActionEvent event)
+            {
+                layout.show(cards, event.getActionCommand());
+                for (T e : cls.getEnumConstants())
+                {
+                    if (e.name().equals(event.getActionCommand()))
+                    {
+                        
+                    }
+                }
+                
+            }
+        }));
+        return panel;
+    }
+    */
     public static JPanel createViewLayoutPanel()
     {
         JPanel panel = new JPanel(new ViewLayout());
@@ -91,24 +124,34 @@ public class GuiComponentFactory
     public static JPanel createSpringLayoutPanel(int rows, int cols, Component... components)
     {
         JPanel panel = new JPanel();
+        initSpringLayoutPanel(panel, rows, cols, components);        
+        return panel;
+    }
+    
+    public static void initSpringLayoutPanel(JPanel panel, int rows, int cols, Component... components)
+    {
         SpringLayout layout = new SpringLayout();
         panel.setLayout(layout);
         
         if (rows * cols == components.length)
         {
             addComponentsToContainer(panel, components);
-            SpringUtilities.makeCompactGrid(panel, rows, cols, 0, 0, 0, 0);
+            SpringUtilities.makeCompactGrid(panel, rows, cols, 5, 0, 5, 0);
         }
-        
-        return panel;
     }
 
     public static JPanel createUserOptionsPanel(Component... components)
     {
+        JPanel panel = new JPanel();
+        initUserOptionsPanel(panel, components);
+        return panel;
+    }
+    
+    public static void initUserOptionsPanel(JPanel panel, Component... components)
+    {
         int cols = 2; 
         int rows = components.length / cols;
-        JPanel panel = createSpringLayoutPanel(rows, cols, components);
-        return panel;
+        initSpringLayoutPanel(panel, rows, cols, components);
     }
 
     public static JButton createButton(String text, POActionListener actionListener)
@@ -129,6 +172,12 @@ public class GuiComponentFactory
         }
         return button;
     }
+    
+    public static JButton createButton(Action action)
+    {
+        final JButton button = new JButton(action);
+        return button;
+    }
 
     public static JLabel createLabel(String text)
     {
@@ -142,11 +191,49 @@ public class GuiComponentFactory
         for (T e : cls.getEnumConstants())
         {
             JRadioButton button = new JRadioButton(e.toString());
-            button.addActionListener(actionListener);
+            if (null != actionListener)
+            {
+                button.addActionListener(actionListener);
+            }
             button.setActionCommand(e.name());
             group.add(button);
         }
         return group;
+    }
+    
+    public static <T extends Enum<?>> JComboBox createEnumDropDownList(Class<T> cls, T initialValue, final POActionListener actionListener)
+    {
+        JComboBox list = new JComboBox(cls.getEnumConstants());
+        if (null != actionListener)
+        {
+            list.addItemListener(new ItemListener()
+            {
+                
+                @Override
+                public void itemStateChanged(ItemEvent event)
+                {
+                    T e = (T) event.getItem();
+                    actionListener.actionPerformed(new ActionEvent(event.getSource(), event.getID(), e.name()));
+                }
+            });
+        }
+        if (null != initialValue)
+        {
+            list.setSelectedItem(initialValue);
+        }
+        return list;
+    }
+    
+    public static AbstractButton[] createButtonArray(ButtonGroup buttons)
+    {
+        AbstractButton[] res = new AbstractButton[buttons.getButtonCount()];
+        int i=0;
+        Enumeration<AbstractButton> enumeration = buttons.getElements();
+        while (enumeration.hasMoreElements())
+        {
+            res[i++] = enumeration.nextElement();
+        }
+        return res;
     }
 
     public static JPanel createAccordion(Map<Object, JPanel> choices)
@@ -239,6 +326,7 @@ public class GuiComponentFactory
     {
         show(frame, true);
     }
+    
     public static void show(final Window frame, final boolean pack)
     {
         SwingUtilities.invokeLater(new Runnable()
@@ -255,6 +343,51 @@ public class GuiComponentFactory
                 frame.setVisible(true);
             }
         });
+    }
+    
+    public static void showModalDialog(final Dialog dialog)
+    {
+        showModalDialog(dialog, true);
+    }
+    
+    public static void showModalDialog(final Dialog dialog, final boolean pack)
+    {
+        Runnable runnable = new Runnable()
+        {
+            
+            @Override
+            public void run()
+            {
+                if (pack)
+                {
+                    dialog.pack();
+                }
+                dialog.setLocationRelativeTo(null);
+                dialog.setVisible(true);
+            }
+        };
+        
+        if (SwingUtilities.isEventDispatchThread())
+        {
+            runnable.run();
+        }
+        else
+        {
+            try
+            {
+                SwingUtilities.invokeAndWait(runnable);
+            }
+            catch (InterruptedException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            catch (InvocationTargetException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
     public static POTagField<KeywordTagDefinition> createTagField(KeywordTagDefinition[] tags, int fieldWidth, POTagFieldSuggestionProvider<KeywordTagDefinition> keywordWordprovider)

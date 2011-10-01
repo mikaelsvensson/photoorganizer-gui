@@ -2,20 +2,27 @@ package info.photoorganizer.gui;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseManager;
+import info.photoorganizer.database.autoindexing.DefaultIndexingConfiguration;
+import info.photoorganizer.database.autoindexing.IndexingConfigurationList;
+import info.photoorganizer.database.autoindexing.MetadataMappingConfiguration;
+import info.photoorganizer.database.autoindexing.MetadataMappingConfigurationInterface;
 import info.photoorganizer.gui.search.MatchProvider;
 import info.photoorganizer.gui.search.Search;
 import info.photoorganizer.gui.search.SearchListener;
 import info.photoorganizer.gui.window.main.Main;
+import info.photoorganizer.metadata.AutoIndexTagDefinition;
+import info.photoorganizer.metadata.DefaultTagDefinition;
 import info.photoorganizer.metadata.Photo;
+import info.photoorganizer.metadata.PhotoFileMetadataTag;
 import info.photoorganizer.util.Event;
 import info.photoorganizer.util.Event.EventExecuter;
 import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.config.ConfigurationProperty;
+import info.photoorganizer.util.transform.ReplaceTransformer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +36,37 @@ public class PhotoOrganizer
     public static void main(String[] args)
     {
 //        GuiComponentFactory.initDefaultLookAndFeel();
-        GuiComponentFactory.show(new Main(new PhotoOrganizer()), false);
+        PhotoOrganizer application = new PhotoOrganizer();
+        
+        Database database = application.getDatabase();
+        IndexingConfigurationList indexingCfgList = ConfigurationProperty.indexingConfigurationList.get();
+        if (indexingCfgList.size() == 0 && null != database)
+        {
+            DefaultIndexingConfiguration configuration = new DefaultIndexingConfiguration();
+            configuration.setFileFilter(new RejectedFileExtensionFileFilter());
+
+            {
+                MetadataMappingConfiguration mappingCfg = new MetadataMappingConfiguration(/*database*/);
+                mappingCfg.setSource(PhotoFileMetadataTag.IPTC_SUPPLEMENTAL_CATEGORIES);
+                mappingCfg.getSourceTextTransformers().add(new ReplaceTransformer(".", " "));
+                mappingCfg.setTarget(database.getTagDefinition(DefaultTagDefinition.ROOT_KEYWORD.getId()));
+                configuration.getMetadataMappers().add(mappingCfg);
+            }
+            
+            for (AutoIndexTagDefinition aitd : AutoIndexTagDefinition.values())
+            {
+                configuration.getMetadataMappers().add(
+                        new MetadataMappingConfiguration(
+                                aitd.getFileTag(), 
+                                database.getTagDefinition(aitd.getTargetTagDefinitionId())/*,
+                                database*/));
+            }
+            indexingCfgList.add(configuration);
+            
+            ConfigurationProperty.indexingConfigurationList.set(indexingCfgList);
+
+        }
+        GuiComponentFactory.show(new Main(application), false);
     }
     
     private Search _currentSearch = null;

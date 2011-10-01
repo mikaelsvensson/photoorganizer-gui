@@ -2,12 +2,24 @@ package info.photoorganizer.gui;
 
 import javax.swing.AbstractAction;
 
+import com.sun.corba.se.impl.logging.POASystemException;
+
 public abstract class POAction extends AbstractAction
 {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
+    
+    public POAction()
+    {
+        super();
+    }
+    
+    public POAction(String name)
+    {
+        setName(name);
+    }
 
     public void setName(String name)
     {
