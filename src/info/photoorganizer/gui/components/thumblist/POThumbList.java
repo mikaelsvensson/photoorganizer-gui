@@ -5,7 +5,6 @@ import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.Keys;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.Orientation;
 import info.photoorganizer.util.Event;
 import info.photoorganizer.util.Event.EventExecuter;
@@ -53,7 +52,7 @@ import javax.swing.Scrollable;
 
 public class POThumbList extends JPanel implements Scrollable
 {
-    private static final Logger L = Logging.getLogger(POThumbList.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(POThumbList.class);
     
     private static final Integer TASK_PRIORITY_HIGH = 1;
     private static final Integer TASK_PRIORITY_LOW = 0;

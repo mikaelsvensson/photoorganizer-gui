@@ -1,6 +1,5 @@
 package info.photoorganizer.gui.components.thumblist;
 
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.DefaultTagDefinition;
 import info.photoorganizer.metadata.IntegerNumberTag;
 import info.photoorganizer.metadata.IntegerNumberTagDefinition;
@@ -18,7 +17,7 @@ import org.omg.CORBA._PolicyStub;
 
 public class DefaultListItem implements ListItem
 {
-    private static final Logger L = Logging.getLogger(POThumbList.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(POThumbList.class);
     
     @Override
     public int hashCode()

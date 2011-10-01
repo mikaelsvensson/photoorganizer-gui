@@ -3,7 +3,6 @@ package info.photoorganizer.gui.components.tagfield;
 import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
 import info.photoorganizer.gui.shared.KeyModifiers;
 import info.photoorganizer.gui.shared.Keys;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.WordInfo;
 
@@ -38,7 +37,7 @@ import javax.swing.text.BadLocationException;
 
 public class POTagField<T> extends JTextField implements DocumentListener, CaretListener, KeyListener, FocusListener, ListSelectionListener
 {
-    private static final Logger L = Logging.getLogger(POTagField.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(POTagField.class);
     
     private class SuggestionItem
     {

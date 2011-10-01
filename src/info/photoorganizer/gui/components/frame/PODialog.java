@@ -2,6 +2,7 @@ package info.photoorganizer.gui.components.frame;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseManager;
+import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.tagfield.POTagFieldSuggestionProvider;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.KeyModifiers;
@@ -14,9 +15,12 @@ import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.config.ConfigurationProperty;
 
 import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ActionMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -25,65 +29,63 @@ import javax.swing.KeyStroke;
 
 public abstract class PODialog extends JDialog
 {
-    private POTagFieldSuggestionProvider<KeywordTagDefinition> _keywordWordprovider = null;
-
-    public POTagFieldSuggestionProvider<KeywordTagDefinition> getKeywordWordprovider()
-    {
-        if (null == _keywordWordprovider)
-        {
-            _keywordWordprovider = new KeywordSuggestionProvider(getDatabase().getRootKeyword());
-        }
-        return _keywordWordprovider;
-    }
-
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-    protected PODialog(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
+    private POCloseReason _closeReason = POCloseReason.OK;
+
+    private Database _database = null;
+
+    private POTagFieldSuggestionProvider<KeywordTagDefinition> _keywordWordprovider = null;
+    
+    protected PODialog(Dialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
+    {
+        this(owner, title, modal, -1, -1, defaultCloseOperation, root);
+    }
+    protected PODialog(Dialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    {
+        super(owner, modal);
+        init(title, width, height, defaultCloseOperation, root);
+    }
+    
+    protected PODialog(Dialog owner, String title, CloseOperation defaultCloseOperation, Container root)
+    {
+        this(owner, title, true, -1, -1, defaultCloseOperation, root);
+    }
+
+    protected PODialog(Frame owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
     {
         this(owner, title, modal, -1, -1, defaultCloseOperation, root);
     }
     
-    protected PODialog(PODialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Frame owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
     {
         super(owner, modal);
-        setContentPane(root);
-        setTitle(getI18nText(title));
-        setDefaultCloseOperation(defaultCloseOperation.getValue());
-        if (width >= 0 && height >= 0)
-        {
-            setSize(width, height);
-            recalculateContentPaneSize();
-        }
+        init(title, width, height, defaultCloseOperation, root);
     }
     
-    protected PODialog(PODialog owner, String title, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Frame owner, String title, CloseOperation defaultCloseOperation, Container root)
     {
         this(owner, title, true, -1, -1, defaultCloseOperation, root);
     }
     
     protected PODialog(String title, CloseOperation defaultCloseOperation, Container root)
     {
-        this(null, title, false, -1, -1, defaultCloseOperation, root);
+        this((Frame)null, title, false, -1, -1, defaultCloseOperation, root);
     }
     
     protected PODialog(String title, int width, int height, CloseOperation defaultCloseOperation, Container root)
     {
-        this(null, title, false, width, height, defaultCloseOperation, root);
+        this((Frame)null, title, false, width, height, defaultCloseOperation, root);
     }
     
-    private void recalculateContentPaneSize()
-    {
-        getContentPane().setPreferredSize(getSize());
-    }
-
     protected void addKeyboardShortcut(POActionListener action, String actionParameter, Keys key, KeyModifiers modifier)
     {
         addKeyboardShortcut(action, actionParameter, key, modifier, null);
     }
-    
+
     protected void addKeyboardShortcut(POActionListener action, String actionParameter, Keys key, KeyModifiers modifier, JComponent owner)
     {
         if (null == owner)
@@ -100,8 +102,17 @@ public abstract class PODialog extends JDialog
             addKeyboardShortcut(definition.getAction(), definition.getActionParameter(), definition.getKey(), definition.getModifiers(), definition.getOwner());
         }
     }
+    
+    protected ActionMap getActionMap()
+    {
+        JPanel contentPane = (JPanel)getContentPane();
+        return contentPane.getActionMap();
+    }
 
-    private Database _database = null;
+    public POCloseReason getCloseReason()
+    {
+        return _closeReason;
+    }
     
     protected Database getDatabase()
     {
@@ -116,20 +127,45 @@ public abstract class PODialog extends JDialog
     {
         return I18n.getInstance().getString(bundle, key);
     }
-    
-    protected String getI18nText(String key)
-    {
-        return I18n.getInstance().getString(getClass(), key);
-    }
 
+    protected String getI18nText(String key, Object... parameters)
+    {
+        return I18n.getInstance().getString(getClass(), key, parameters);
+    }
+    
+    public POTagFieldSuggestionProvider<KeywordTagDefinition> getKeywordWordprovider()
+    {
+        if (null == _keywordWordprovider)
+        {
+            _keywordWordprovider = new KeywordSuggestionProvider(getDatabase().getRootKeyword());
+        }
+        return _keywordWordprovider;
+    }
+    
     protected JPanel getRootPanel()
     {
         return (JPanel) getContentPane();
     }
-    
-    protected void setDefaultButton(JButton button)
+
+    private void init(String title,
+            int width,
+            int height,
+            CloseOperation defaultCloseOperation,
+            Container root)
     {
-        getRootPane().setDefaultButton(button);
+        setContentPane(root);
+        setTitle(getI18nText(title));
+        setDefaultCloseOperation(defaultCloseOperation.getValue());
+        if (width >= 0 && height >= 0)
+        {
+            setSize(width, height);
+            recalculateContentPaneSize();
+        }
+    }
+    
+    private void recalculateContentPaneSize()
+    {
+        getContentPane().setPreferredSize(getSize());
     }
     
     protected void setCancelButton(final JButton button)
@@ -146,4 +182,30 @@ public abstract class PODialog extends JDialog
             }
         }, null, Keys.ESCAPE, KeyModifiers.NONE);
     }
+
+    public void setCloseReason(POCloseReason closeReason)
+    {
+        _closeReason = closeReason;
+    }
+    
+    protected void setDefaultButton(JButton button)
+    {
+        getRootPane().setDefaultButton(button);
+    }
+
+    protected void dispose(POCloseReason reason)
+    {
+        setCloseReason(reason);
+        dispose();
+    }
+
+    public POCloseReason showModal()
+    {
+        boolean modal = isModal();
+        setModal(true);
+        GuiComponentFactory.showModalDialog(this);
+        setModal(modal);
+        return getCloseReason();
+    }
+    
 }

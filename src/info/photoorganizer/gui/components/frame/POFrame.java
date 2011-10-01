@@ -12,6 +12,7 @@ import info.photoorganizer.util.config.ConfigurationProperty;
 import java.awt.Container;
 import java.awt.Frame;
 
+import javax.swing.ActionMap;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -89,5 +90,11 @@ public class POFrame extends JFrame
     protected POFrame(String title, int width, int height, CloseOperation defaultCloseOperation, Container root)
     {
         this(null, title, false, width, height, defaultCloseOperation, root);
+    }
+    
+    protected ActionMap getActionMap()
+    {
+        JPanel contentPane = (JPanel)getContentPane();
+        return contentPane.getActionMap();
     }
 }

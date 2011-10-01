@@ -2,7 +2,6 @@ package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
 import java.awt.datatransfer.Transferable;
@@ -23,7 +22,7 @@ import javax.swing.tree.TreePath;
  */
 public class POKeywordTreeTransferHandler extends TransferHandler
 {
-    private static final Logger L = Logging.getLogger(POKeywordTree.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(POKeywordTree.class);
     
     /**
      * 

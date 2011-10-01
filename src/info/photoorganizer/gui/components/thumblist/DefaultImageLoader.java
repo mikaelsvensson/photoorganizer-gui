@@ -1,7 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
 import info.photoorganizer.gui.components.thumblist.ImageLoader;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.Orientation;
 import info.photoorganizer.metadata.Rotation;
 
@@ -36,7 +35,7 @@ import com.mortennobel.imagescaling.ResampleOp;
  */
 public class DefaultImageLoader implements ImageLoader
 {
-    private static final Logger L = Logging.getLogger(ImageLoader.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(ImageLoader.class);
     
     public static class CacheEntry
     {

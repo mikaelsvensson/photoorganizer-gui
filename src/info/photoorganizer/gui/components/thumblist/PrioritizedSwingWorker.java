@@ -1,6 +1,5 @@
 package info.photoorganizer.gui.components.thumblist;
 
-import info.photoorganizer.gui.shared.Logging;
 
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -17,7 +16,7 @@ import javax.swing.SwingWorker;
  */
 public class PrioritizedSwingWorker<T, V, P extends Comparable<P>> extends SwingWorker<T, V>
 {
-    private static final Logger L = Logging.getLogger(PrioritizedSwingWorker.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(PrioritizedSwingWorker.class);
     
     private static final int WAIT = 2000;
     private TreeSet<Task> _tasks = new TreeSet<Task>();

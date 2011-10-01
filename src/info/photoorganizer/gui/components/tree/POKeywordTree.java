@@ -2,7 +2,6 @@ package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
 import java.awt.event.ActionEvent;
@@ -17,7 +16,7 @@ import javax.swing.tree.TreeModel;
 
 public class POKeywordTree extends POTree<POKeywordTreeModel, KeywordTagDefinition>
 {
-    private static final Logger L = Logging.getLogger(POKeywordTree.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(POKeywordTree.class);
     /**
      * 
      */
