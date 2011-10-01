@@ -1,14 +1,15 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig.autoindexing;
 
 import info.photoorganizer.database.autoindexing.POFileFilter;
 import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.POAction;
 import info.photoorganizer.gui.components.POTwoLevelChoice;
 import info.photoorganizer.gui.components.frame.POCloseReason;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
+import info.photoorganizer.gui.shared.POAction;
 import info.photoorganizer.gui.shared.POActionListener;
+import info.photoorganizer.gui.shared.POSimpleDocumentListener;
 import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.transform.ReplaceTransformer;
 import info.photoorganizer.util.transform.TextCaseTransformer;
@@ -32,30 +33,6 @@ public class EditTextTransformationDialog extends PODialog
 
     public enum TextTransformationOption
     {
-        /*NO_TRANSFORMATION
-        {
-            @Override
-            public TextTransformer createFilter()
-            {
-                return null;
-            }
-            
-            @Override
-            protected JPanel createUI(TextTransformer filter)
-            {
-                return GuiComponentFactory.createBoxLayoutPanel(
-                        true, 
-                        GuiComponentFactory.createLabel(
-                                getI18nString("NO_CONFIGURATION_PARAMETERS")));
-            }
-            
-            @Override
-            public boolean handlesTextTransformation(TextTransformer filter)
-            {
-                return filter == null;
-            }
-        },
-        */
         TEXT_CASE
         {
             JComboBox transformationList = null;
@@ -133,38 +110,27 @@ public class EditTextTransformationDialog extends PODialog
                     oldText = replaceTransformer.getParam(ReplaceTransformer.PARAM_OLD);
                     replacementText = replaceTransformer.getParam(ReplaceTransformer.PARAM_REPLACEMENT);
                 }
-                DocumentListener documentListener = new DocumentListener()
+                oldTextField = GuiComponentFactory.createTextField(oldText);
+                oldTextField.getDocument().addDocumentListener(new POSimpleDocumentListener()
                 {
-                    
                     @Override
-                    public void removeUpdate(DocumentEvent e)
-                    {
-                        update(e);
-                    }
-                    
-                    @Override
-                    public void insertUpdate(DocumentEvent e)
-                    {
-                        update(e);
-                    }
-                    
-                    @Override
-                    public void changedUpdate(DocumentEvent e)
-                    {
-                        update(e);
-                    }
-                    
-                    private void update(DocumentEvent e)
+                    public void update(DocumentEvent e, String text)
                     {
                         ReplaceTransformer replaceTransformer = (ReplaceTransformer) filter;
-                        replaceTransformer.setParam(ReplaceTransformer.PARAM_OLD, oldTextField.getText());
-                        replaceTransformer.setParam(ReplaceTransformer.PARAM_REPLACEMENT, replacementTextField.getText());
+                        replaceTransformer.setParam(ReplaceTransformer.PARAM_OLD, text);
                     }
-                };
-                oldTextField = GuiComponentFactory.createTextField(oldText);
-                oldTextField.getDocument().addDocumentListener(documentListener);
+                });
                 replacementTextField = GuiComponentFactory.createTextField(replacementText);
-                replacementTextField.getDocument().addDocumentListener(documentListener);
+                replacementTextField.getDocument().addDocumentListener(new POSimpleDocumentListener()
+                {
+                    @Override
+                    public void update(DocumentEvent e, String text)
+                    {
+                        ReplaceTransformer replaceTransformer = (ReplaceTransformer) filter;
+                        replaceTransformer.setParam(ReplaceTransformer.PARAM_REPLACEMENT, text);
+                        
+                    }
+                });
                 JPanel panel = GuiComponentFactory.createUserOptionsPanel(
                         GuiComponentFactory.createLabel(getI18nString("OLD_TEXT_LABEL")),
                         oldTextField,
@@ -216,7 +182,6 @@ public class EditTextTransformationDialog extends PODialog
     }
     
     private TextTransformer cfg = null;
-//    private boolean editMode = false;
     
     public TextTransformer getConfiguration()
     {
@@ -305,61 +270,12 @@ public class EditTextTransformationDialog extends PODialog
                 dispose(POCloseReason.CANCEL);
             }
         };
-        
-//        TextTransformationOption option = TextTransformationOption.valueOf(cfg);
-//        JComboBox transformersList = GuiComponentFactory.createEnumDropDownList(TextTransformationOption.class, option, new POActionListener()
-//        {
-//            
-//            @Override
-//            public void actionPerformedImpl(ActionEvent event)
-//            {
-//                if (getRootPanel().getComponentCount() > 0)
-//                {
-//                    TextTransformationOption option = TextTransformationOption.valueOf(event.getActionCommand());
-//                    showOptionConfigPanel(option, null);
-//                }
-//            }
-//        });
-//        
-//        transformersList.setEnabled(!editMode);
-        
-//        add(transformersList);
         add(getOptions());
         add(GuiComponentFactory.createFlowLayoutPanel(FlowLayoutAlignment.LEFT, 
                 GuiComponentFactory.createButton(okAction),
                 GuiComponentFactory.createButton(cancelAction)
                 ));
-//        showOptionConfigPanel(cfg);
     }
     
-//    private CardLayout cardLayout = new CardLayout();
-//    
-//    private JPanel optionConfigPanel = null;
-//    
-//    private HashMap<TextTransformationOption, TextTransformer> options = new HashMap<EditTextTransformationDialog.TextTransformationOption, TextTransformer>();
-//    
-//    private void showOptionConfigPanel(TextTransformer initialConfig)
-//    {
-//        showOptionConfigPanel(TextTransformationOption.valueOf(initialConfig), initialConfig);
-//    }
-//    
-//    private void showOptionConfigPanel(TextTransformationOption option, TextTransformer initialConfig)
-//    {
-//        if (!options.containsKey(option))
-//        {
-//            options.put(option, null != initialConfig ? initialConfig : option.createFilter());
-//        }
-//        
-//        cfg = options.get(option);
-//        
-//        if (null != optionConfigPanel)
-//        {
-//            remove(optionConfigPanel);
-//        }
-//        optionConfigPanel = option.createUI(cfg);
-//        add(optionConfigPanel, 1);
-//        validate();
-//        pack();
-//    }
 
 }

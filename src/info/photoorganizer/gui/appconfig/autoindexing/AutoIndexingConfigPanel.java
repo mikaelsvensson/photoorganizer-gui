@@ -1,8 +1,9 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig.autoindexing;
 
 import info.photoorganizer.database.autoindexing.IndexingConfigurationInterface;
 import info.photoorganizer.database.autoindexing.IndexingConfigurationList;
 import info.photoorganizer.gui.GuiComponentFactory;
+import info.photoorganizer.gui.appconfig.POConfigPanel;
 import info.photoorganizer.gui.components.frame.POCloseReason;
 import info.photoorganizer.gui.shared.POActionListener;
 import info.photoorganizer.metadata.PhotoFileMetadataTag;
@@ -28,22 +29,11 @@ public class AutoIndexingConfigPanel extends POConfigPanel
      */
     private static final long serialVersionUID = 1L;
     
-    private ButtonGroup sourceOptions = GuiComponentFactory.createEnumRadioButtonGroup(PhotoFileMetadataTag.class, new POActionListener()
-    {
-        @Override
-        public void actionPerformedImpl(ActionEvent event)
-        {
-            JOptionPane.showMessageDialog(AutoIndexingConfigPanel.this, event.getActionCommand());
-        }
-    });
-    private JPanel sourceOpts = null;
     private JList indexingConfigurationList = null;
     private DefaultListModel listModel = new DefaultListModel();
     
     public AutoIndexingConfigPanel()
     {
-        sourceOpts = GuiComponentFactory.createBoxLayoutPanel(false, GuiComponentFactory.createButtonArray(sourceOptions));
-        
         for (IndexingConfigurationInterface cfg : ConfigurationProperty.indexingConfigurationList.get())
         {
             listModel.addElement(cfg);
@@ -56,29 +46,21 @@ public class AutoIndexingConfigPanel extends POConfigPanel
             @Override
             public void mouseReleased(MouseEvent e)
             {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void mousePressed(MouseEvent e)
             {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void mouseExited(MouseEvent e)
             {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void mouseEntered(MouseEvent e)
             {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
@@ -105,8 +87,6 @@ public class AutoIndexingConfigPanel extends POConfigPanel
         });
         
         Component[] components = {
-                GuiComponentFactory.createLabel(getI18nText("SOURCE_FIELD")),
-                sourceOpts,
                 GuiComponentFactory.createLabel(getI18nText("INDEXING_CONFIGURATIONS")),
                 indexingConfigurationList
         };

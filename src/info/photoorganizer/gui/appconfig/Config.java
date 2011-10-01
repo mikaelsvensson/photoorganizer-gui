@@ -1,6 +1,7 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig;
 
 import info.photoorganizer.gui.GuiComponentFactory;
+import info.photoorganizer.gui.appconfig.autoindexing.AutoIndexingConfigPanel;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.frame.POFrame;
 import info.photoorganizer.gui.shared.CloseOperation;

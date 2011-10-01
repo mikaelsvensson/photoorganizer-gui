@@ -1,9 +1,10 @@
-package info.photoorganizer.gui.window.main;
+package info.photoorganizer.gui.mainwindow;
 
 
 import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.POAction;
 import info.photoorganizer.gui.PhotoOrganizer;
+import info.photoorganizer.gui.appconfig.Config;
+import info.photoorganizer.gui.appconfig.ConfigPanel;
 import info.photoorganizer.gui.components.frame.POFrame;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.thumblist.MetadataLoader;
@@ -11,8 +12,7 @@ import info.photoorganizer.gui.components.view.POViewPanel;
 import info.photoorganizer.gui.components.view.Position;
 import info.photoorganizer.gui.components.view.TreeException;
 import info.photoorganizer.gui.shared.CloseOperation;
-import info.photoorganizer.gui.window.config.Config;
-import info.photoorganizer.gui.window.config.ConfigPanel;
+import info.photoorganizer.gui.shared.POAction;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
 import java.awt.BorderLayout;

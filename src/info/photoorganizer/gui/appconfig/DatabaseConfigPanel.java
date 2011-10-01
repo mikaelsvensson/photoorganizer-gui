@@ -1,4 +1,4 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig;
 
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.util.config.ConfigurationProperty;

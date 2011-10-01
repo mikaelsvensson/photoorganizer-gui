@@ -1,6 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
-import info.photoorganizer.gui.POAction;
+import info.photoorganizer.gui.shared.POAction;
 
 public abstract class POThumbListAction extends POAction
 {

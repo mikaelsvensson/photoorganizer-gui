@@ -1,11 +1,11 @@
 package info.photoorganizer.gui.components.frame;
 
 import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.POAction;
 import info.photoorganizer.gui.components.POCardLayout;
 import info.photoorganizer.gui.components.POWrappedLabel;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
+import info.photoorganizer.gui.shared.POAction;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;

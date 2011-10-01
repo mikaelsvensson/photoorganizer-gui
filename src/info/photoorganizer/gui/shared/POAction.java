@@ -1,4 +1,4 @@
-package info.photoorganizer.gui;
+package info.photoorganizer.gui.shared;
 
 import javax.swing.AbstractAction;
 

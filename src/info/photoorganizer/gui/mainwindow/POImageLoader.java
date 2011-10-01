@@ -1,4 +1,4 @@
-package info.photoorganizer.gui.window.main;
+package info.photoorganizer.gui.mainwindow;
 
 import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;

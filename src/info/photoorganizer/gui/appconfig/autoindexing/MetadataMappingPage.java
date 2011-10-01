@@ -1,35 +1,21 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig.autoindexing;
 
-import info.photoorganizer.database.autoindexing.AllFilesFileFilter;
-import info.photoorganizer.database.autoindexing.DefaultIndexingConfiguration;
-import info.photoorganizer.database.autoindexing.IndexingConfigurationInterface;
+import info.photoorganizer.database.Database;
 import info.photoorganizer.database.autoindexing.MetadataMappingConfiguration;
 import info.photoorganizer.database.autoindexing.MetadataMappingConfigurationInterface;
-import info.photoorganizer.database.autoindexing.POFileFilter;
 import info.photoorganizer.gui.GuiComponentFactory;
-import info.photoorganizer.gui.POAction;
-import info.photoorganizer.gui.RejectedFileExtensionFileFilter;
-import info.photoorganizer.gui.components.POTwoLevelChoice;
+import info.photoorganizer.gui.appconfig.autoindexing.EditTextTransformationDialog.TextTransformationOption;
 import info.photoorganizer.gui.components.frame.POCloseReason;
-import info.photoorganizer.gui.components.frame.POGuideDialog;
-import info.photoorganizer.gui.components.frame.POGuidePage;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
+import info.photoorganizer.gui.shared.POAction;
 import info.photoorganizer.gui.shared.POActionListener;
-import info.photoorganizer.gui.shared.POSimpleDocumentListener;
-import info.photoorganizer.gui.window.config.EditTextTransformationDialog.TextTransformationOption;
 import info.photoorganizer.metadata.PhotoFileMetadataTag;
-import info.photoorganizer.metadata.RegexpFileFilter;
 import info.photoorganizer.metadata.TagDefinition;
-import info.photoorganizer.util.I18n;
-import info.photoorganizer.util.StringUtils;
 import info.photoorganizer.util.transform.TextCaseTransformer;
 import info.photoorganizer.util.transform.TextTransformer;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -37,11 +23,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -50,206 +33,28 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-public class EditIndexingConfigurationDialog extends POGuideDialog
-{
-    private enum FileFilterOption
+class MetadataMappingPage extends Page
     {
-        NO_FILTER
+        /**
+         * 
+         */
+        private final EditIndexingConfigurationDialog _editIndexingConfigurationDialog;
+        private final Database _database;
+
+        /**
+         * @param editIndexingConfigurationDialog
+         */
+        public MetadataMappingPage(EditIndexingConfigurationDialog editIndexingConfigurationDialog, Database database)
         {
-            @Override
-            public POFileFilter createFilter()
-            {
-                return new AllFilesFileFilter();
-            }
-            
-            @Override
-            protected JPanel createUI(POFileFilter filter)
-            {
-                return new JPanel();
-            }
-
-            @Override
-            public boolean handlesFileFilter(POFileFilter filter)
-            {
-                return filter instanceof AllFilesFileFilter;
-            }
-        },
-        REGEXP
-        {
-            
-            @Override
-            public POFileFilter createFilter()
-            {
-                return new RegexpFileFilter();
-            }
-
-            @Override
-            protected JPanel createUI(POFileFilter filter)
-            {
-                String filterText = "";
-                JTextField textField = GuiComponentFactory.createTextField(filterText);
-                if (handlesFileFilter(filter))
-                {
-                    final RegexpFileFilter regexpFilter = (RegexpFileFilter) filter;
-                    filterText = regexpFilter.getParam();
-                    textField.setText(filterText);
-                    textField.getDocument().addDocumentListener(new POSimpleDocumentListener()
-                    {
-                        @Override
-                        public void update(DocumentEvent e, String text)
-                        {
-                            regexpFilter.setParam(text);
-                        }
-                    });
-                }
-                JPanel panel = GuiComponentFactory.createUserOptionsPanel(
-                        GuiComponentFactory.createLabel(getI18nString("EXPRESSION_LABEL")),
-                        textField
-                        );
-                return panel;
-            }
-
-            @Override
-            public boolean handlesFileFilter(POFileFilter filter)
-            {
-                return filter instanceof RegexpFileFilter;
-            }
-        },
-        REJECTED_EXTENSIONS
-        {
-            @Override
-            public POFileFilter createFilter()
-            {
-                return new RejectedFileExtensionFileFilter();
-//                filter.setRejectedFileTypes(textField.getText().split(EXTENSION_SEPARATOR));
-//                return filter;
-            }
-
-            @Override
-            protected JPanel createUI(POFileFilter filter)
-            {
-                String extensionsText = "";
-                JTextField textField = GuiComponentFactory.createTextField("");
-                if (handlesFileFilter(filter))
-                {
-                    final RejectedFileExtensionFileFilter rejectedExtensionFilter = (RejectedFileExtensionFileFilter) filter;
-                    extensionsText = StringUtils.join(rejectedExtensionFilter.getRejectedFileTypes().iterator(), EXTENSION_SEPARATOR);
-                    textField.setText(extensionsText);
-                    textField.getDocument().addDocumentListener(new POSimpleDocumentListener()
-                    {
-                        @Override
-                        public void update(DocumentEvent e, String text)
-                        {
-                            rejectedExtensionFilter.setRejectedFileTypes(text.split(EXTENSION_SEPARATOR));
-                        }
-                    });
-                }
-                JPanel panel = GuiComponentFactory.createUserOptionsPanel(
-                        GuiComponentFactory.createLabel(getI18nString("EXTENSIONS_LABEL")),
-                        textField
-                        );
-                return panel;
-            }
-
-            @Override
-            public boolean handlesFileFilter(POFileFilter filter)
-            {
-                return filter instanceof RejectedFileExtensionFileFilter;
-            }
-        };
-
-        private static final String EXTENSION_SEPARATOR = ",";
-
-        private I18n i18n = I18n.getInstance();
-
-        public abstract POFileFilter createFilter();
-
-        protected abstract JPanel createUI(POFileFilter filter);
-        
-        public String getI18nString(String key, Object... parameters)
-        {
-            return i18n.getString(EditIndexingConfigurationDialog.class,
-                    FileFilterOption.class.getSimpleName() + "." + key, parameters);
-        }
-        
-        public abstract boolean handlesFileFilter(POFileFilter filter);
-
-        @Override
-        public String toString()
-        {
-            return getI18nString(name());
+            _editIndexingConfigurationDialog = editIndexingConfigurationDialog;
+            _database = database;
         }
 
-        public static FileFilterOption valueOf(POFileFilter filter)
-        {
-            for (FileFilterOption f : values())
-            {
-                if (f.handlesFileFilter(filter))
-                {
-                    return f;
-                }
-            }
-            return null;
-        }
-    }
-    
-    
-    
-    private class FileFilterPage extends Page
-    {
-        private static final long serialVersionUID = 1L;
-        
-        private FileFilterPage()
-        {
-            super();
-        }
-        
-        private POTwoLevelChoice<FileFilterOption, JPanel> _options = null;
-
-        @Override
-        protected void initComponents()
-        {
-            LinkedHashMap<FileFilterOption, JPanel> choices = new LinkedHashMap<EditIndexingConfigurationDialog.FileFilterOption, JPanel>();
-            for (FileFilterOption filterOption : FileFilterOption.values())
-            {
-                POFileFilter filter = null; 
-                if (filterOption.handlesFileFilter(cfg.getFileFilter()))
-                {
-                    filter = cfg.getFileFilter();
-                }
-                else
-                {
-                    filter = filterOption.createFilter();
-                }
-                JPanel filterPanel = filterOption.createUI(filter);
-                filterPanel.putClientProperty("FILTER_MODEL", filter);
-                choices.put(filterOption, filterPanel);
-            }
-            _options = new POTwoLevelChoice<EditIndexingConfigurationDialog.FileFilterOption, JPanel>(choices);
-            _options.setSelected(EditIndexingConfigurationDialog.FileFilterOption.valueOf(cfg.getFileFilter()));
-            add(_options);
-        }
-
-        @Override
-        protected boolean onOK()
-        {
-            POFileFilter item = (POFileFilter)_options.getSelectedChoiceValue().getClientProperty("FILTER_MODEL");
-            cfg.setFileFilter(item);
-            return true;
-        }
-
-    }
-    
-    private class MetadataMappingPage extends Page
-    {
         private final Border LEFT_PADDING_BORDER = BorderFactory.createEmptyBorder(0, 10, 0, 0);
         private final CompoundBorder SEPARATION_BORDER = BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(0, 0, 10, 0), 
@@ -293,7 +98,7 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
                     }
                 }));
                 _list = new JScrollPane(_mappings);
-                for (MetadataMappingConfigurationInterface mapper : cfg.getMetadataMappers())
+                for (MetadataMappingConfigurationInterface mapper : _editIndexingConfigurationDialog.getConfiguration().getMetadataMappers())
                 {
                     addMappingPanel(mapper);
                 }
@@ -350,7 +155,7 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
                     TextCaseTransformer textCaseTransformer = new TextCaseTransformer(TextCaseTransformer.Transformation.CAPITALIZE.name());
                     try
                     {
-                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(EditIndexingConfigurationDialog.this, TextTransformationOption.REPLACE);
+                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, TextTransformationOption.REPLACE);
                         GuiComponentFactory.showModalDialog(dialog);
                         if (dialog.getCloseReason() == POCloseReason.OK)
                         {
@@ -373,7 +178,7 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
                     try
                     {
                         int index = transformationsList.getSelectedIndex();
-                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(EditIndexingConfigurationDialog.this, (TextTransformer) transformationsListMode.get(index));
+                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, (TextTransformer) transformationsListMode.get(index));
                         GuiComponentFactory.showModalDialog(dialog);
                         if (dialog.getCloseReason() == POCloseReason.OK)
                         {
@@ -440,8 +245,8 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
             });
             
             JLabel targetLabel = GuiComponentFactory.createLabel(getI18nText("MAPPING_TARGET"));
-            JComboBox targetDropDown = new JComboBox(getDatabase().getTagDefinitions().toArray());
-            targetDropDown.setSelectedItem(mappingCfg.getTarget(getDatabase()));
+            JComboBox targetDropDown = new JComboBox(_database.getTagDefinitions().toArray());
+            targetDropDown.setSelectedItem(mappingCfg.getTarget(_database));
             targetDropDown.setBorder(LEFT_PADDING_BORDER);
             targetDropDown.addItemListener(new ItemListener()
             {
@@ -510,85 +315,3 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
             _mappings.revalidate();
         }
     }
-
-    private abstract class Page extends POGuidePage
-    {
-
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public String getDescription()
-        {
-            return getI18nText(EditIndexingConfigurationDialog.class,
-                    getClass().getSimpleName() + ".DESCRIPTION");
-        }
-
-        @Override
-        public String getName()
-        {
-            return getI18nText(EditIndexingConfigurationDialog.class,
-                    getClass().getSimpleName() + ".TITLE");
-        }
-        
-        protected String getI18nText(String key, Object... parameters)
-        {
-            return super.getI18nText(EditIndexingConfigurationDialog.class,
-                    getClass().getSimpleName() + "." + key, parameters);
-        }
-    }
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-
-    private POGuidePage[] _pages = null;
-
-    private IndexingConfigurationInterface cfg = null;
-
-    public EditIndexingConfigurationDialog(Dialog owner)
-            throws CloneNotSupportedException
-    {
-        this(owner, null);
-    }
-
-    public EditIndexingConfigurationDialog(Dialog owner,
-            IndexingConfigurationInterface originalConfiguration)
-            throws CloneNotSupportedException
-    {
-        super(owner, null != originalConfiguration ? "TITLE_EDIT" : "TITLE_NEW");
-
-        if (null != originalConfiguration)
-        {
-            cfg = originalConfiguration.cloneDeep();
-        }
-        else
-        {
-            cfg = new DefaultIndexingConfiguration();
-        }
-        
-        initComponents();
-    }
-
-    public IndexingConfigurationInterface getConfiguration()
-    {
-        return cfg;
-    }
-
-    @Override
-    protected POGuidePage[] getPagesImpl()
-    {
-        if (null == _pages)
-        {
-            _pages = new POGuidePage[] {
-                    new FileFilterPage(),
-                    new MetadataMappingPage()
-            };
-        }
-        return _pages;
-    }
-
-}

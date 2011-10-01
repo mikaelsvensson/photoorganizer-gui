@@ -1,4 +1,4 @@
-package info.photoorganizer.gui.window.config;
+package info.photoorganizer.gui.appconfig;
 
 
 public enum ConfigPanel
