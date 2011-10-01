@@ -1,6 +1,7 @@
 package info.photoorganizer.gui.mainwindow;
 
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.PhotoOrganizer;
 import info.photoorganizer.gui.appconfig.Config;
@@ -55,9 +56,9 @@ public class Main extends POFrame
         return _componentTagField;
     }
 
-    public Main(PhotoOrganizer application)
+    public Main(PhotoOrganizer application, Database database)
     {
-        super("TITLE", 1000, 800, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super("TITLE", 1000, 800, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
         
         initActions();
         
@@ -99,7 +100,7 @@ public class Main extends POFrame
             @Override
             public void actionPerformed(ActionEvent arg0)
             {
-                GuiComponentFactory.show(new Config(Main.this));
+                GuiComponentFactory.show(new Config(Main.this, getDatabase()));
             }
         });
     }

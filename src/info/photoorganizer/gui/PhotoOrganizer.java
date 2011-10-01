@@ -67,7 +67,7 @@ public class PhotoOrganizer
             ConfigurationProperty.indexingConfigurationList.set(indexingCfgList);
 
         }
-        GuiComponentFactory.show(new Main(application), false);
+        GuiComponentFactory.show(new Main(application, database), false);
     }
     
     private Search _currentSearch = null;

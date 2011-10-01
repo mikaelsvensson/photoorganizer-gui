@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.components.frame;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.POCardLayout;
 import info.photoorganizer.gui.components.POWrappedLabel;
@@ -35,9 +36,9 @@ public abstract class POGuideDialog extends PODialog
     private static final long serialVersionUID = 1L;
     private JPanel buttonsPanel;
 
-    public POGuideDialog(Dialog owner, String title, CloseOperation defaultCloseOperation)
+    public POGuideDialog(Dialog owner, String title, CloseOperation defaultCloseOperation, Database database)
     {
-        super(owner, title, defaultCloseOperation, GuiComponentFactory.createBorderLayoutPanel());
+        super(owner, title, defaultCloseOperation, GuiComponentFactory.createBorderLayoutPanel(), database);
 //        initActions();
 //        initComponents();
     }
@@ -46,23 +47,23 @@ public abstract class POGuideDialog extends PODialog
         initActions();
     }
     
-    public POGuideDialog(Frame owner, String title, CloseOperation defaultCloseOperation)
+    public POGuideDialog(Frame owner, String title, CloseOperation defaultCloseOperation, Database database)
     {
-        super(owner, title, defaultCloseOperation, GuiComponentFactory.createBorderLayoutPanel());
+        super(owner, title, defaultCloseOperation, GuiComponentFactory.createBorderLayoutPanel(), database);
 //        initActions();
 //        initComponents();
     }
 
-    public POGuideDialog(Frame owner, String title)
+    public POGuideDialog(Frame owner, String title, Database database)
     {
-        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
 //        initActions();
 //        initComponents();
     }
     
-    public POGuideDialog(Dialog owner, String title)
+    public POGuideDialog(Dialog owner, String title, Database database)
     {
-        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
 //        initActions();
 //        initComponents();
     }

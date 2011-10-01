@@ -7,7 +7,7 @@ import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.components.tree.POKeywordTreeModel;
 import info.photoorganizer.gui.components.tree.POTreePanel;
-import info.photoorganizer.gui.editkeyword.EditKeywordFrame;
+import info.photoorganizer.gui.editkeyword.EditKeywordDialog;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
 import info.photoorganizer.gui.shared.KeyModifiers;
@@ -45,11 +45,11 @@ public class EditKeywordsFrame extends PODialog
 
     private static final char KEYWORD_QUOTATION_CHARACTER = '"';
 
-    public static void main(String[] args)
-    {
-        GuiComponentFactory.initDefaultLookAndFeel();
-        GuiComponentFactory.show(new EditKeywordsFrame());
-    }
+//    public static void main(String[] args)
+//    {
+//        GuiComponentFactory.initDefaultLookAndFeel();
+//        GuiComponentFactory.show(new EditKeywordsFrame());
+//    }
     private JButton _addButton = null;
     
     private POTagField<KeywordTagDefinition> _testKeywordsField = null;
@@ -167,9 +167,9 @@ public class EditKeywordsFrame extends PODialog
 
     private JButton _cancelButton = null;
     
-    protected EditKeywordsFrame()
+    protected EditKeywordsFrame(Database database)
     {
-        super("TITLE", 600, 600, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super("TITLE", 600, 600, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
         
         initComponents();
         
@@ -214,7 +214,7 @@ public class EditKeywordsFrame extends PODialog
         {
             Database database = getDatabase();
             
-            _keywordsTree = new POTreePanel(new POKeywordTreeModel(database.getRootKeyword()), true);
+            _keywordsTree = new POTreePanel(new POKeywordTreeModel(database.getRootKeyword(), database), true);
             _keywordsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
             //_keywordsTree.setRootVisible(false);
             _keywordsTree.setEditable(true);
@@ -282,7 +282,7 @@ public class EditKeywordsFrame extends PODialog
     private void onEditButton_actionPerformed(ActionEvent event)
     {
         KeywordTagDefinition keyword = getSelectedKeyword();
-        GuiComponentFactory.show(new EditKeywordFrame(this, keyword));
+        GuiComponentFactory.show(new EditKeywordDialog(this, keyword, getDatabase()));
     }
     
     private void onKeywordsTree_TreeSelection_valueChanged()

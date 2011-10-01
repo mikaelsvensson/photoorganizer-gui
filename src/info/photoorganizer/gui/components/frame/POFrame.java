@@ -22,10 +22,10 @@ public class POFrame extends JFrame
     
     protected Database getDatabase()
     {
-        if (null == _database)
-        {
-            _database = DatabaseManager.getInstance().openDatabase(ConfigurationProperty.dbPath.get());
-        }
+//        if (null == _database)
+//        {
+//            _database = DatabaseManager.getInstance().openDatabase(ConfigurationProperty.dbPath.get());
+//        }
         return _database;
     }
     
@@ -44,17 +44,18 @@ public class POFrame extends JFrame
         return (JPanel) getContentPane();
     }
     
-    protected POFrame(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
+    protected POFrame(PODialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, modal, -1, -1, defaultCloseOperation, root);
+        this(owner, title, modal, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected POFrame(PODialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected POFrame(PODialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root, Database database)
     {
         super();
         setContentPane(root);
         setTitle(getI18nText(title));
         setDefaultCloseOperation(defaultCloseOperation.getValue());
+        _database = database;
         if (width >= 0 && height >= 0)
         {
             setSize(width, height);
@@ -77,19 +78,19 @@ public class POFrame extends JFrame
         return _keywordWordprovider;
     }
     
-    protected POFrame(PODialog owner, String title, CloseOperation defaultCloseOperation, Container root)
+    protected POFrame(PODialog owner, String title, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, true, -1, -1, defaultCloseOperation, root);
+        this(owner, title, true, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected POFrame(String title, CloseOperation defaultCloseOperation, Container root)
+    protected POFrame(String title, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(null, title, false, -1, -1, defaultCloseOperation, root);
+        this(null, title, false, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected POFrame(String title, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected POFrame(String title, int width, int height, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(null, title, false, width, height, defaultCloseOperation, root);
+        this(null, title, false, width, height, defaultCloseOperation, root, database);
     }
     
     protected ActionMap getActionMap()

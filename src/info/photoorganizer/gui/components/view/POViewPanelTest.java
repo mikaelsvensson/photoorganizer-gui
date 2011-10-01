@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.components.view;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
@@ -8,9 +9,9 @@ import java.awt.BorderLayout;
 
 public class POViewPanelTest extends PODialog
 {
-    public POViewPanelTest() throws TreeException
+    public POViewPanelTest(Database database) throws TreeException
     {
-        super("test", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super("test", 500, 500, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
 
         POViewPane labelAlbert = new POViewPaneInfo(GuiComponentFactory.createLabel("Albert"), "A");
         POViewPane labelBertha = new POViewPaneInfo(GuiComponentFactory.createLabel("Bertha"), "B");
@@ -32,6 +33,6 @@ public class POViewPanelTest extends PODialog
     
     public static void main(String[] args) throws TreeException
     {
-        GuiComponentFactory.show(new POViewPanelTest());
+        GuiComponentFactory.show(new POViewPanelTest(null));
     }
 }

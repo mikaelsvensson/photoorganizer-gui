@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.appconfig.autoindexing;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.database.autoindexing.POFileFilter;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.POTwoLevelChoice;
@@ -188,25 +189,25 @@ public class EditTextTransformationDialog extends PODialog
         return cfg;
     }
 
-    public EditTextTransformationDialog(Dialog owner, TextTransformationOption option) throws CloneNotSupportedException
+    public EditTextTransformationDialog(Dialog owner, TextTransformationOption option, Database database) throws CloneNotSupportedException
     {
-        this(owner, "TITLE_NEW");
+        this(owner, "TITLE_NEW", database);
         
         cfg = option.createFilter();
         
         initComponents();
     }
     
-    private EditTextTransformationDialog(Dialog owner, String title)
+    private EditTextTransformationDialog(Dialog owner, String title, Database database)
     {
-        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false));
+        super(owner, title, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false), database);
     }
     
     public EditTextTransformationDialog(Dialog owner,
-            TextTransformer initialOptionConfiguration)
+            TextTransformer initialOptionConfiguration, Database database)
             throws CloneNotSupportedException
     {
-        this(owner, "TITLE_EDIT");
+        this(owner, "TITLE_EDIT", database);
         
         TextTransformationOption option = TextTransformationOption.valueOf(initialOptionConfiguration);
         if (null != option)

@@ -1,20 +1,26 @@
 package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.database.Database;
+import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.components.thumblist.DefaultImageLoader;
+import info.photoorganizer.gui.shared.POAction;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import java.util.logging.Logger;
 
+import javax.swing.ActionMap;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 public class POKeywordTreePanel extends POTreePanel<POKeywordTreeModel, KeywordTagDefinition>
 {
+    private static final String ACTIONNAME_SETSYNONYMS = "ACTIONNAME_SETSYNONYMS";
+
     private static final Logger L = info.photoorganizer.util.Log.getLogger(POKeywordTree.class);
     
     /**
@@ -47,7 +53,7 @@ public class POKeywordTreePanel extends POTreePanel<POKeywordTreeModel, KeywordT
         if (null == _popupMenu)
         {
             _popupMenu = new JPopupMenu();
-            JMenuItem item = new JMenuItem("hej");
+            JMenuItem item = new JMenuItem(getActionMap().get(ACTIONNAME_SETSYNONYMS));
             item.addActionListener(_popupMenuItemListener);
             _popupMenu.add(item);
         }
@@ -101,6 +107,37 @@ public class POKeywordTreePanel extends POTreePanel<POKeywordTreeModel, KeywordT
 //            }
 //        });
         setTransferHandler(new POKeywordTreeTransferHandler(this));
+        
+        initActions();
+    }
+
+    private void initActions()
+    {
+        ActionMap actionMap = getActionMap();
+        actionMap.put(ACTIONNAME_SETSYNONYMS, new POAction(getI18nText("SET_AS_SYNONYMS"))
+        {
+            
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                List<KeywordTagDefinition> selection = getSelection();
+                if (selection.size() > 1)
+                {
+                    for (int i=1; i < selection.size(); i++)
+                    {
+                        try
+                        {
+                            KeywordTagDefinition.addSynonym(selection.get(0), selection.get(i), true);
+                        }
+                        catch (DatabaseStorageException e)
+                        {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
     }
     
 //    private void onKeywordsTree_TreeSelection_valueChanged(TreeSelectionEvent e)

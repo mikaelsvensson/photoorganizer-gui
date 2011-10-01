@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.appconfig.autoindexing;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.database.autoindexing.DefaultIndexingConfiguration;
 import info.photoorganizer.database.autoindexing.IndexingConfigurationInterface;
 import info.photoorganizer.gui.components.frame.POGuideDialog;
@@ -18,17 +19,18 @@ public class EditIndexingConfigurationDialog extends POGuideDialog
 
     private IndexingConfigurationInterface cfg = null;
 
-    public EditIndexingConfigurationDialog(Dialog owner)
+    public EditIndexingConfigurationDialog(Dialog owner, Database database)
             throws CloneNotSupportedException
     {
-        this(owner, null);
+        this(owner, null, database);
     }
 
     public EditIndexingConfigurationDialog(Dialog owner,
-            IndexingConfigurationInterface originalConfiguration)
+            IndexingConfigurationInterface originalConfiguration,
+            Database database)
             throws CloneNotSupportedException
     {
-        super(owner, null != originalConfiguration ? "TITLE_EDIT" : "TITLE_NEW");
+        super(owner, null != originalConfiguration ? "TITLE_EDIT" : "TITLE_NEW", database);
 
         if (null != originalConfiguration)
         {

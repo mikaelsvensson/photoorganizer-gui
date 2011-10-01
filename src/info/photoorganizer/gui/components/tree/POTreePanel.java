@@ -1,5 +1,7 @@
 package info.photoorganizer.gui.components.tree;
 
+import info.photoorganizer.util.I18n;
+
 import java.awt.BorderLayout;
 import java.awt.dnd.DropTarget;
 import java.awt.event.FocusListener;
@@ -201,6 +203,11 @@ public class POTreePanel<T extends TreeModel, N> extends JPanel /*implements Tre
     public void setTransferHandler(TransferHandler newHandler)
     {
         _tree.setTransferHandler(newHandler);
+    }
+
+    protected String getI18nText(String key, Object... parameters)
+    {
+        return I18n.getInstance().getString(getClass(), key, parameters);
     }
 
 //    @Override

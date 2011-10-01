@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.appconfig.autoindexing;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.database.autoindexing.IndexingConfigurationInterface;
 import info.photoorganizer.database.autoindexing.IndexingConfigurationList;
 import info.photoorganizer.gui.GuiComponentFactory;
@@ -31,9 +32,12 @@ public class AutoIndexingConfigPanel extends POConfigPanel
     
     private JList indexingConfigurationList = null;
     private DefaultListModel listModel = new DefaultListModel();
+//    private Database database = null;
     
-    public AutoIndexingConfigPanel()
+    public AutoIndexingConfigPanel(final Database database)
     {
+//        this.database = database;
+        
         for (IndexingConfigurationInterface cfg : ConfigurationProperty.indexingConfigurationList.get())
         {
             listModel.addElement(cfg);
@@ -71,7 +75,7 @@ public class AutoIndexingConfigPanel extends POConfigPanel
                     try
                     {
                         int index = indexingConfigurationList.getSelectedIndex();
-                        EditIndexingConfigurationDialog dialog = new EditIndexingConfigurationDialog(getOwner(), (IndexingConfigurationInterface)indexingConfigurationList.getSelectedValue());
+                        EditIndexingConfigurationDialog dialog = new EditIndexingConfigurationDialog(getOwner(), (IndexingConfigurationInterface)indexingConfigurationList.getSelectedValue(), database);
                         if (dialog.showModal() == POCloseReason.OK)
                         {
                             listModel.set(index, dialog.getConfiguration());

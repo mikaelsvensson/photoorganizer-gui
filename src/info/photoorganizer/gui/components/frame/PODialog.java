@@ -40,45 +40,45 @@ public abstract class PODialog extends JDialog
 
     private POTagFieldSuggestionProvider<KeywordTagDefinition> _keywordWordprovider = null;
     
-    protected PODialog(Dialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Dialog owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, modal, -1, -1, defaultCloseOperation, root);
+        this(owner, title, modal, -1, -1, defaultCloseOperation, root, database);
     }
-    protected PODialog(Dialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Dialog owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root, Database database)
     {
         super(owner, modal);
-        init(title, width, height, defaultCloseOperation, root);
+        init(title, width, height, defaultCloseOperation, root, database);
     }
     
-    protected PODialog(Dialog owner, String title, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Dialog owner, String title, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, true, -1, -1, defaultCloseOperation, root);
+        this(owner, title, true, -1, -1, defaultCloseOperation, root, database);
     }
 
-    protected PODialog(Frame owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Frame owner, String title, boolean modal, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, modal, -1, -1, defaultCloseOperation, root);
+        this(owner, title, modal, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected PODialog(Frame owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Frame owner, String title, boolean modal, int width, int height, CloseOperation defaultCloseOperation, Container root, Database database)
     {
         super(owner, modal);
-        init(title, width, height, defaultCloseOperation, root);
+        init(title, width, height, defaultCloseOperation, root, database);
     }
     
-    protected PODialog(Frame owner, String title, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(Frame owner, String title, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this(owner, title, true, -1, -1, defaultCloseOperation, root);
+        this(owner, title, true, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected PODialog(String title, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(String title, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this((Frame)null, title, false, -1, -1, defaultCloseOperation, root);
+        this((Frame)null, title, false, -1, -1, defaultCloseOperation, root, database);
     }
     
-    protected PODialog(String title, int width, int height, CloseOperation defaultCloseOperation, Container root)
+    protected PODialog(String title, int width, int height, CloseOperation defaultCloseOperation, Container root, Database database)
     {
-        this((Frame)null, title, false, width, height, defaultCloseOperation, root);
+        this((Frame)null, title, false, width, height, defaultCloseOperation, root, database);
     }
     
     protected void addKeyboardShortcut(POActionListener action, String actionParameter, Keys key, KeyModifiers modifier)
@@ -116,10 +116,10 @@ public abstract class PODialog extends JDialog
     
     protected Database getDatabase()
     {
-        if (null == _database)
-        {
-            _database = DatabaseManager.getInstance().openDatabase(ConfigurationProperty.dbPath.get());
-        }
+//        if (null == _database)
+//        {
+//            _database = DatabaseManager.getInstance().openDatabase(ConfigurationProperty.dbPath.get());
+//        }
         return _database;
     }
     
@@ -151,11 +151,13 @@ public abstract class PODialog extends JDialog
             int width,
             int height,
             CloseOperation defaultCloseOperation,
-            Container root)
+            Container root,
+            Database database)
     {
         setContentPane(root);
         setTitle(getI18nText(title));
         setDefaultCloseOperation(defaultCloseOperation.getValue());
+        this._database = database; 
         if (width >= 0 && height >= 0)
         {
             setSize(width, height);

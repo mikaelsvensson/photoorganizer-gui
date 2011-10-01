@@ -12,18 +12,21 @@ public class POKeywordTreeModel extends POTreeModel implements KeywordTagDefinit
 {
     private KeywordTagDefinition root = null;
     
+    protected final Database _database;
     public POKeywordTreeModel(Database database)
     {
         super();
         this.root = database.getRootKeyword();
         this.root.addKeywordEventListener(this);
+        this._database = database;
     }
     
-    public POKeywordTreeModel(KeywordTagDefinition root)
+    public POKeywordTreeModel(KeywordTagDefinition root, Database database)
     {
         super();
         this.root = root;
         this.root.addKeywordEventListener(this);
+        this._database = database;
     }
 
     @Override

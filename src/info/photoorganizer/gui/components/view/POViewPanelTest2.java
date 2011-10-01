@@ -54,9 +54,9 @@ public class POViewPanelTest2 extends POFrame
     
     private final POThumbList thumbList = new POThumbList();
     
-    public POViewPanelTest2() throws TreeException
+    public POViewPanelTest2(Database database) throws TreeException
     {
-        super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super("TITLE", 800, 800, CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
         
         setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
         
@@ -301,10 +301,10 @@ public class POViewPanelTest2 extends POFrame
         });
     }
     
-    public static void main(String[] args) throws TreeException
-    {
-//        imx.loggui.LogMaster.startLogGui();
-        GuiComponentFactory.initDefaultLookAndFeel();
-        GuiComponentFactory.show(new POViewPanelTest2());
-    }
+//    public static void main(String[] args) throws TreeException
+//    {
+////        imx.loggui.LogMaster.startLogGui();
+//        GuiComponentFactory.initDefaultLookAndFeel();
+//        GuiComponentFactory.show(new POViewPanelTest2());
+//    }
 }

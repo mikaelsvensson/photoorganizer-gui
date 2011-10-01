@@ -1,8 +1,10 @@
 package info.photoorganizer.gui.editkeyword;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.database.DatabaseStorageException;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
+import info.photoorganizer.gui.components.frame.POFrame;
 import info.photoorganizer.gui.components.tagfield.POTagField;
 import info.photoorganizer.gui.shared.CloseOperation;
 import info.photoorganizer.gui.shared.FlowLayoutAlignment;
@@ -12,12 +14,15 @@ import info.photoorganizer.util.WordInfo;
 
 import java.awt.Container;
 import java.awt.event.ActionEvent;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class EditKeywordFrame extends PODialog
+public class EditKeywordDialog extends PODialog
 {
     
     /**
@@ -137,34 +142,62 @@ public class EditKeywordFrame extends PODialog
     
     private void okButton_actionPerformedImpl()
     {
+        KeywordTagDefinition rootKeyword = getDatabase().getRootKeyword();
+        
         _keyword.setName(getNameField().getText());
         
-        _keyword.removeAllSynonyms();
+        Set<UUID> oldSynonymIds = _keyword.getSynonymIdsSet();
+        Set<UUID> newSynonymIds = new HashSet<UUID>();
+        
         for (WordInfo word : getSynonymsField().getWords())
         {
-            KeywordTagDefinition rootKeyword = getDatabase().getRootKeyword();
             KeywordTagDefinition k = rootKeyword.getChildByName(word.getWord(), true);
             if (null == k)
             {
                 k = rootKeyword.addChild(word.getWord());
             }
-            try
+            newSynonymIds.add(k.getId());
+        }
+        
+        try
+        {
+            for (UUID oldId : oldSynonymIds)
             {
-                KeywordTagDefinition.addSynonym(_keyword, k, true);
+                if (!newSynonymIds.contains(oldId))
+                {
+                    // Synonym has been removed
+                    KeywordTagDefinition.removeSynonym(_keyword, rootKeyword.getChildById(oldId, true), true);
+                }
             }
-            catch (DatabaseStorageException e)
+            for (UUID newId : newSynonymIds)
             {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                if (!oldSynonymIds.contains(newId))
+                {
+                    // Synonym has been added
+                    KeywordTagDefinition.addSynonym(_keyword, rootKeyword.getChildById(newId, true), true);
+                }
             }
+        }
+        catch (DatabaseStorageException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         
         dispose();
     }
     
-    public EditKeywordFrame(PODialog owner, KeywordTagDefinition keywordToEdit)
+    public EditKeywordDialog(PODialog owner, KeywordTagDefinition keywordToEdit, Database database)
     {
-        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false));
+        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false), database);
+        
+        _keyword = keywordToEdit;
+        
+        initComponents();
+    }
+    public EditKeywordDialog(POFrame owner, KeywordTagDefinition keywordToEdit, Database database)
+    {
+        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBoxLayoutPanel(false), database);
         
         _keyword = keywordToEdit;
         
@@ -220,9 +253,9 @@ public class EditKeywordFrame extends PODialog
                 GuiComponentFactory.createLabel(getI18nText("NAME_LABEL")),
                 getNameField(),
                 GuiComponentFactory.createLabel(getI18nText("SYNONYMS_LABEL")),
-                getSynonymsField(),
+                getSynonymsField()/*,
                 GuiComponentFactory.createLabel(getI18nText("TYPE_LABEL")),
-                getTypeButtonGroup());
+                getTypeButtonGroup()*/);
         
         JPanel buttonPanel = GuiComponentFactory.createFlowLayoutPanel(FlowLayoutAlignment.RIGHT, getOkButton(), getCancelButton());
         

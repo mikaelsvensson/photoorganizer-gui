@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.components.thumblist;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.components.frame.PODialog;
 import info.photoorganizer.gui.shared.CloseOperation;
@@ -287,9 +288,9 @@ public class POThumbList extends JPanel implements Scrollable
          */
         private static final long serialVersionUID = 1L;
 
-        protected POThumbListTestDialog(Container root)
+        protected POThumbListTestDialog(Container root, Database database)
         {
-            super("TITLE", CloseOperation.DISPOSE_ON_CLOSE, root);
+            super("TITLE", CloseOperation.DISPOSE_ON_CLOSE, root, database);
         }
         
     }
@@ -323,18 +324,18 @@ public class POThumbList extends JPanel implements Scrollable
      */
     private static final long serialVersionUID = 1L;
 
-    public static void main(String[] args)
-    {
-        POThumbList thumbList = new POThumbList();
-        
-        thumbList.setItems(new File("F:\\Fotografier\\Personer\\Sonja"));
-        
-        JPanel p = new JPanel();
-        JScrollPane scrollPane = new JScrollPane(thumbList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setPreferredSize(new Dimension(500, 500));
-        p.add(scrollPane);
-        GuiComponentFactory.show(new POThumbListTestDialog(scrollPane));
-    }
+//    public static void main(String[] args)
+//    {
+//        POThumbList thumbList = new POThumbList();
+//        
+//        thumbList.setItems(new File("F:\\Fotografier\\Personer\\Sonja"));
+//        
+//        JPanel p = new JPanel();
+//        JScrollPane scrollPane = new JScrollPane(thumbList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+//        scrollPane.setPreferredSize(new Dimension(500, 500));
+//        p.add(scrollPane);
+//        GuiComponentFactory.show(new POThumbListTestDialog(scrollPane));
+//    }
     
     boolean _regroupPending = true;
     

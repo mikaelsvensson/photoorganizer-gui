@@ -1,5 +1,6 @@
 package info.photoorganizer.gui.appconfig;
 
+import info.photoorganizer.database.Database;
 import info.photoorganizer.gui.GuiComponentFactory;
 import info.photoorganizer.gui.appconfig.autoindexing.AutoIndexingConfigPanel;
 import info.photoorganizer.gui.components.frame.PODialog;
@@ -26,14 +27,14 @@ public class Config extends PODialog
 {
     POConfigPanel[] _panels = null;
     
-    public Config(POFrame owner)
+    public Config(POFrame owner, Database database)
     {
-        this(owner, ConfigPanel.values());
+        this(owner, database, ConfigPanel.values());
     }
 
-    public Config(POFrame owner, ConfigPanel... panels)
+    public Config(POFrame owner, Database database, ConfigPanel... panels)
     {
-        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel());
+        super(owner, "TITLE", CloseOperation.DISPOSE_ON_CLOSE, GuiComponentFactory.createBorderLayoutPanel(), database);
         
         initComponents(panels);
     }
@@ -148,7 +149,7 @@ public class Config extends PODialog
         switch (p)
         {
         case AUTOMATIC_INDEXING:
-            return new AutoIndexingConfigPanel();
+            return new AutoIndexingConfigPanel(getDatabase());
         case DATABASE:
             return new DatabaseConfigPanel(); 
         }

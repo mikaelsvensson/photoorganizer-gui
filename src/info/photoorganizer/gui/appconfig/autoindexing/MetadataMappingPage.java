@@ -155,7 +155,7 @@ class MetadataMappingPage extends Page
                     TextCaseTransformer textCaseTransformer = new TextCaseTransformer(TextCaseTransformer.Transformation.CAPITALIZE.name());
                     try
                     {
-                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, TextTransformationOption.REPLACE);
+                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, TextTransformationOption.REPLACE, _database);
                         GuiComponentFactory.showModalDialog(dialog);
                         if (dialog.getCloseReason() == POCloseReason.OK)
                         {
@@ -178,7 +178,7 @@ class MetadataMappingPage extends Page
                     try
                     {
                         int index = transformationsList.getSelectedIndex();
-                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, (TextTransformer) transformationsListMode.get(index));
+                        EditTextTransformationDialog dialog = new EditTextTransformationDialog(_editIndexingConfigurationDialog, (TextTransformer) transformationsListMode.get(index), _database);
                         GuiComponentFactory.showModalDialog(dialog);
                         if (dialog.getCloseReason() == POCloseReason.OK)
                         {

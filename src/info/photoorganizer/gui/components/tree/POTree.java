@@ -1,6 +1,7 @@
 package info.photoorganizer.gui.components.tree;
 
 import info.photoorganizer.util.Event;
+import info.photoorganizer.util.I18n;
 import info.photoorganizer.util.Event.EventExecuter;
 
 import java.io.File;
@@ -117,5 +118,10 @@ class POTree<T extends TreeModel, N> extends JTree implements TreeSelectionListe
 //        }
 //        System.err.println("Selection: " + _selection.toString());
         _selectionEvent.fire(new POTreeSelectionEvent<N>(this, getSelection()));
+    }
+
+    protected String getI18nText(String key, Object... parameters)
+    {
+        return I18n.getInstance().getString(getClass(), key, parameters);
     }
 }
