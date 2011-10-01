@@ -9,7 +9,6 @@ import info.photoorganizer.gui.components.tree.POTreeSelectionEvent;
 import info.photoorganizer.gui.components.tree.POTreeSelectionListener;
 import info.photoorganizer.gui.search.FolderContentMatchProvider;
 import info.photoorganizer.gui.search.MatchProvider;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.KeywordTagDefinition;
 import info.photoorganizer.util.StringUtils;
 
@@ -27,7 +26,7 @@ import javax.swing.JScrollPane;
 public class PhotoSourcePanel extends DockablePanel<JScrollPane>
 {
     
-    private static final Logger L = Logging.getLogger(PhotoSourcePanel.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(PhotoSourcePanel.class);
 
     public PhotoSourcePanel(PhotoOrganizer application)
     {

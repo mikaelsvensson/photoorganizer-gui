@@ -8,7 +8,6 @@ import info.photoorganizer.gui.components.thumblist.SelectionEventListener;
 import info.photoorganizer.gui.search.Match;
 import info.photoorganizer.gui.search.SearchListener;
 import info.photoorganizer.gui.search.SearchResultEvent;
-import info.photoorganizer.gui.shared.Logging;
 import info.photoorganizer.metadata.Photo;
 
 import java.awt.BorderLayout;
@@ -24,7 +23,7 @@ import javax.swing.JScrollPane;
 public class SearchResultPanel extends DockablePanel<JPanel>
 {
 
-    private static final Logger L = Logging.getLogger(SearchResultPanel.class);
+    private static final Logger L = info.photoorganizer.util.Log.getLogger(SearchResultPanel.class);
     
     public SearchResultPanel(PhotoOrganizer application)
     {
